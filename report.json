@@ -1,0 +1,120 @@
+[
+  {
+    "name": "iphone",
+    "tilesOk": 34,
+    "tilesBad": 0,
+    "failed": [
+      "429 https://fastest-aloft.vercel.app/api/lol/v2/type/A359?min=470",
+      "404 https://api.adsbdb.com/v0/aircraft/ab9af3",
+      "429 https://fastest-aloft.vercel.app/api/lol/v2/type/A339?min=470"
+    ],
+    "errors": [
+      "error: Failed to load resource: the server responded with a status of 429 (Unknown Error)",
+      "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "error: Failed to load resource: the server responded with a status of 429 (Unknown Error)"
+    ],
+    "info": {
+      "tilesInDom": 20,
+      "tileSrc": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/3/2/2",
+      "tileSize": [
+        256,
+        "256px"
+      ],
+      "paneFilter": "none",
+      "leafletCss": "hidden",
+      "boot": "Pulling every fast jet the world's receivers can see, starting with the long-haul fleets.",
+      "bootHidden": true,
+      "speed": "622",
+      "callsign": "AAL86",
+      "checks": "01:40:56 AM\nStill fastest vs UAL953\n+5 kt\n01:40:45 AM\nStill fastest vs UAL953\n+6 kt\n01:40:31 AM\nFirst leader found\n623 kt\n",
+      "field": "107 JETS ≥ 500 KT",
+      "sources": "adsb.lol · live\nadsb.fi · live\n4 sweeps\n",
+      "board": "\n1\nAAL86\nB789 · N847MF · AMERICAN AIRLINES INC\n621\nleader\n\n2\nUAL953\nB788 · N26909 · UNITED AIRLINES INC\n616\n−5\n\n3\nACA820\nB77W · C-FIUL\n615\n−6\n\n4\nSVA062\nB789 · HZ-ARF\n612\n−9\n\n5\nACA894\nB77W · C-FITL\n607\n−14\n\n6\nUAL907\nB788 · N29907\n606\n−15\n\n7\nACA890\nB77W · C-FIUR\n600\n−21\n"
+    }
+  },
+  {
+    "name": "iphone-open",
+    "tilesOk": 52,
+    "tilesBad": 0,
+    "failed": [
+      "429 https://fastest-aloft.vercel.app/api/lol/v2/type/A359?min=470",
+      "404 https://api.adsbdb.com/v0/aircraft/ab9af3",
+      "429 https://fastest-aloft.vercel.app/api/lol/v2/hex/a2a2e6",
+      "429 https://fastest-aloft.vercel.app/api/fi/api/v2/hex/c01734"
+    ],
+    "errors": [
+      "error: Failed to load resource: the server responded with a status of 429 (Unknown Error)",
+      "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "error: Failed to load resource: the server responded with a status of 429 (Unknown Error)",
+      "error: Failed to load resource: the server responded with a status of 429 (Unknown Error)"
+    ],
+    "info": {
+      "tilesInDom": 36,
+      "tileSrc": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/3/2/2",
+      "tileSize": [
+        256,
+        "256px"
+      ],
+      "paneFilter": "none",
+      "leafletCss": "hidden",
+      "boot": "Pulling every fast jet the world's receivers can see, starting with the long-haul fleets.",
+      "bootHidden": true,
+      "speed": "619",
+      "callsign": "AAL86",
+      "checks": "01:41:27 AM\nStill fastest vs UAL953\n+4 kt\n01:41:18 AM\nStill fastest vs UAL953\n+5 kt\n01:41:04 AM\nFirst leader found\n621 kt\n",
+      "field": "123 JETS ≥ 500 KT",
+      "sources": "adsb.lol · live\nadsb.fi · live\n5 sweeps\n",
+      "board": "\n1\nAAL86\nB789 · N847MF · AMERICAN AIRLINES INC\n619\nleader\n\n2\nUAL953\nB788 · N26909 · UNITED AIRLINES INC\n615\n−4\n\n3\nACA820\nB77W · C-FIUL\n614\n−5\n\n4\nSVA062\nB789 · HZ-ARF\n613\n−6\n\n5\nUAL907\nB788 · N29907\n607\n−13\n\n6\nACA894\nB77W · C-FITL\n606\n−13\n\n7\nACA890\nB77W · C-FIUR\n602\n−17\n"
+    }
+  },
+  {
+    "name": "desktop",
+    "tilesOk": 167,
+    "tilesBad": 0,
+    "failed": [
+      "429 https://fastest-aloft.vercel.app/api/lol/v2/type/B77W?min=470",
+      "404 https://api.adsbdb.com/v0/aircraft/ab9af3",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/5/6",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/6/3",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/6/6",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/3/5",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/5/2",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/7/3",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/7/6",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/4/2",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/3/7",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/7/2",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/5/1",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/4/8",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/6/8",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/3/1",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/3/8",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/7/8",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/4/5/4",
+      "net::ERR_ABORTED https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/4/4/5"
+    ],
+    "errors": [
+      "error: Failed to load resource: the server responded with a status of 429 ()",
+      "error: Failed to load resource: the server responded with a status of 404 ()",
+      "error: Failed to load resource: the server responded with a status of 429 ()"
+    ],
+    "info": {
+      "tilesInDom": 80,
+      "tileSrc": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/5/11/9",
+      "tileSize": [
+        256,
+        "256px"
+      ],
+      "paneFilter": "none",
+      "leafletCss": "hidden",
+      "boot": "Pulling every fast jet the world's receivers can see, starting with the long-haul fleets.",
+      "bootHidden": true,
+      "speed": "619",
+      "callsign": "AAL86",
+      "checks": "01:41:54 AM\nStill fastest vs SVA062\n+0 kt\n01:41:40 AM\nFirst leader found\n618 kt",
+      "field": "48 JETS ≥ 500 KT",
+      "sources": "adsb.lol · live\nadsb.fi · live\n1 sweeps",
+      "board": "1\nAAL86\nB789 · N847MF · AMERICAN AIRLINES INC\n619\nleader\n2\nSVA062\nB789 · HZ-ARF\n619\n−0\n3\nETD6PX\nB789 · A6-BLY\n586\n−33\n4\nETD16\nB789 · A6-BNI\n579\n−40\n5\nTOM243\nB789 · G-TUIO\n574\n−46\n6\nAAL236\nB789 · N830AN\n573\n−47\n7\nDLH443\nB789 · D-ABPB\n572\n−47"
+    }
+  }
+]
