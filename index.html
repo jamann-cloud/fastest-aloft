@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A1424">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fastest Aloft">
+<title>Fastest Aloft</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Layout: full-bleed night map; instrument panel as a bottom sheet on phones, a left rail on desktop. */
+:root{
+  --ink:#0A1424;
+  --panel:rgba(11,21,37,.90);
+  --panel-solid:#0E1A2D;
+  --raised:#13233A;
+  --line:rgba(150,176,204,.16);
+  --line-strong:rgba(150,176,204,.32);
+  --fg:#EAF0F7;
+  --steel:#A4B7CC;
+  --muted:#7489A3;
+  --burn:#FFB23F;
+  --burn-deep:#E37F1C;
+  --burn-glow:rgba(255,178,63,.35);
+  --hold:#52D3A0;
+  --alert:#FF6B5C;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --peek:302px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--fg);font:15px/1.45 var(--body);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--burn);outline-offset:2px;border-radius:6px}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- map ---------- */
+#map{position:fixed;inset:0;background:var(--ink);z-index:0}
+.leaflet-container{background:var(--ink);font-family:var(--body)}
+.leaflet-tile-pane{filter:brightness(.92) sepia(.35) hue-rotate(178deg) saturate(1.7) contrast(1.05)}
+.leaflet-control-attribution{background:rgba(10,20,36,.7)!important;color:var(--muted)!important;font-size:10px!important;border-radius:6px 0 0 0}
+.leaflet-control-attribution a{color:var(--steel)!important}
+.leaflet-top{top:calc(70px + var(--safe-t))}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel-solid);color:var(--fg);border:1px solid var(--line-strong);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.leaflet-popup-content{margin:12px 14px;font:13px/1.4 var(--body)}
+.leaflet-popup-close-button{color:var(--muted)!important}
+.cov{transition:stroke-opacity 1.6s ease, stroke 1.6s ease}
+.cov.hit{stroke:var(--burn)!important;stroke-opacity:.75!important;transition:none}
+
+.champ-wrap{position:relative;width:64px;height:64px}
+.champ-wrap .halo{position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle,var(--burn-glow) 0%,rgba(255,178,63,0) 70%);animation:halo 2.4s ease-out infinite}
+.champ-wrap .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--burn);opacity:0;animation:ring 2.4s ease-out infinite}
+.champ-wrap svg{position:absolute;inset:12px;width:40px;height:40px;filter:drop-shadow(0 0 6px var(--burn-glow)) drop-shadow(0 2px 3px rgba(0,0,0,.6));transition:transform .8s ease}
+.champ-tag{position:absolute;left:50%;top:62px;transform:translateX(-50%);white-space:nowrap;background:var(--burn);color:#1B1206;font:600 11px/1 var(--mono);padding:4px 6px;border-radius:4px;letter-spacing:.02em;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+@keyframes halo{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.5);opacity:0}}
+@keyframes ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.rival{position:relative;width:26px;height:26px}
+.rival svg{width:26px;height:26px;transition:transform .8s ease}
+.rival span{position:absolute;left:24px;top:4px;font:500 10px/1 var(--mono);color:var(--steel);background:rgba(10,20,36,.78);padding:3px 4px;border-radius:3px;white-space:nowrap}
+.ap-label{font:600 10px/1 var(--mono);color:var(--steel);background:rgba(10,20,36,.85);border:1px solid var(--line-strong);padding:3px 5px;border-radius:3px;white-space:nowrap;transform:translate(8px,-50%)}
+
+/* ---------- top bar ---------- */
+.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(10px + var(--safe-t)) 16px 10px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(10,20,36,.92) 0%,rgba(10,20,36,.6) 70%,rgba(10,20,36,0) 100%);pointer-events:none}
+.topbar > *{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:30px;height:30px;flex:none}
+.brand-name{font:900 clamp(18px,5.4vw,24px)/1 var(--display);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.brand-sub{font:500 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;white-space:nowrap}
+.spacer{flex:1}
+.check{display:flex;align-items:center;gap:8px;background:rgba(14,26,45,.85);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 5px}
+.check svg{width:30px;height:30px;transform:rotate(-90deg)}
+.check .track{stroke:var(--line-strong)}
+.check .prog{stroke:var(--burn);transition:stroke .3s}
+.check.busy .prog{stroke:var(--steel)}
+.check-txt{display:flex;flex-direction:column;line-height:1.1}
+.check-l{font:500 9px/1.2 var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.check-v{font:600 13px/1.2 var(--mono)}
+
+.map-btns{position:fixed;right:16px;top:calc(66px + var(--safe-t));z-index:15;display:flex;flex-direction:column;gap:8px}
+.mbtn{width:42px;height:42px;border-radius:12px;background:rgba(14,26,45,.88);border:1px solid var(--line);display:grid;place-items:center;color:var(--steel);transition:background .2s,color .2s,border-color .2s}
+.mbtn svg{width:20px;height:20px}
+.mbtn[aria-pressed="true"]{color:var(--burn);border-color:rgba(255,178,63,.5);background:rgba(40,30,12,.85)}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:16px;right:72px;top:calc(68px + var(--safe-t));transform:translateY(-12px);opacity:0;z-index:30;background:var(--burn);color:#1B1206;padding:10px 14px;border-radius:12px;font:600 13px/1.3 var(--body);box-shadow:0 14px 30px rgba(0,0,0,.45);transition:opacity .3s,transform .3s;pointer-events:none;display:flex;gap:10px;align-items:center}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast b{font:900 18px/1 var(--display);letter-spacing:.03em}
+.toast.lost{background:var(--steel)}
+
+/* ---------- sheet ---------- */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:25;height:min(84dvh,820px);background:var(--panel);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border-top:1px solid var(--line-strong);border-radius:22px 22px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.45);transform:translateY(calc(100% - var(--peek) - var(--safe-b)));transition:transform .45s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+.sheet.open{transform:translateY(0)}
+.grab{flex:none;display:flex;justify-content:center;padding:10px 0 4px;width:100%}
+.grab i{width:44px;height:5px;border-radius:3px;background:var(--line-strong)}
+.sheet-body{flex:1;min-height:0;overflow:hidden;padding:4px 16px calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:18px}
+.sheet.open .sheet-body{overflow-y:auto;overscroll-behavior:contain}
+
+.eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:7px;font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--burn)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--burn);box-shadow:0 0 0 0 var(--burn-glow);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,178,63,.55)}100%{box-shadow:0 0 0 10px rgba(255,178,63,0)}}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);padding:5px 8px;border-radius:999px;border:1px solid var(--line-strong);color:var(--steel)}
+.pill.hold{color:var(--hold);border-color:rgba(82,211,160,.4);background:rgba(82,211,160,.08)}
+.pill.new{color:var(--burn);border-color:rgba(255,178,63,.5);background:rgba(255,178,63,.1)}
+.pill.lost{color:var(--alert);border-color:rgba(255,107,92,.45);background:rgba(255,107,92,.08)}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+.hero{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:-6px}
+.speed{font:900 clamp(78px,24vw,112px)/.86 var(--display);letter-spacing:-.01em;color:var(--fg);font-variant-numeric:tabular-nums;text-shadow:0 0 40px rgba(255,178,63,.18)}
+.hero-side{display:flex;flex-direction:column;gap:6px;padding-bottom:6px}
+.unit{font:700 22px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--burn);border-bottom:1.5px dashed rgba(255,178,63,.5);padding-bottom:2px;align-self:flex-start}
+.hero-cap{font:500 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.mach-chip{font:500 12px/1 var(--mono);color:var(--steel)}
+
+.tape-wrap{position:relative;margin-top:-6px}
+#tape{display:block;width:100%;height:58px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+
+.ident{display:flex;flex-direction:column;gap:6px}
+.ident-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.callsign{font:700 30px/1 var(--display);letter-spacing:.05em;text-transform:uppercase}
+.airline{color:var(--steel);font-weight:500;min-width:0}
+.ident-sub{color:var(--muted);font-size:13.5px}
+.ident-sub b{color:var(--fg);font-weight:500}
+.route{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-top:6px}
+.ap{display:flex;flex-direction:column;min-width:0}
+.ap b{font:700 22px/1 var(--display);letter-spacing:.06em}
+.ap span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.ap.r{text-align:right;align-items:flex-end}
+.rbar{position:relative;height:2px;background:var(--line-strong);border-radius:2px}
+.rbar i{position:absolute;left:0;top:0;bottom:0;background:var(--burn);border-radius:2px}
+.rbar svg{position:absolute;top:50%;width:18px;height:18px;transform:translate(-50%,-50%) rotate(90deg);color:var(--burn)}
+.route-note{font:500 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+.insight{font-size:14.5px;line-height:1.5;color:var(--steel);border-left:2px solid var(--burn);padding:2px 0 2px 12px;text-wrap:pretty}
+.insight strong{color:var(--fg);font-weight:600}
+
+.sec-h{font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.sec-h em{font-style:normal;color:var(--steel);letter-spacing:.04em;text-transform:none;font-weight:400}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cell{padding:11px 12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.cell .k{font:500 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.cell .v{font:600 19px/1.15 var(--display);letter-spacing:.03em;margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .v small{font:500 11px var(--mono);color:var(--muted);letter-spacing:0;margin-left:4px}
+.cell .v.dim{color:var(--muted)}
+.cell.wide{grid-column:1 / -1}
+.compass{width:34px;height:34px;flex:none}
+.cell-flex{display:flex;align-items:center;gap:10px;margin-top:3px}
+.cell-flex .v{margin-top:0}
+
+.spark{width:100%;height:56px;display:block}
+
+.photo{position:relative;border-radius:14px;overflow:hidden;background:var(--raised);aspect-ratio:16/10;max-width:100%}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo figcaption{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 9px;background:linear-gradient(180deg,transparent,rgba(5,10,20,.85));font:500 11px/1.3 var(--mono);color:var(--steel)}
+.photo figcaption a{color:var(--fg)}
+
+.board{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.row:first-child{border-top:1px solid var(--line)}
+.row .rk{font:700 18px/1 var(--display);color:var(--muted)}
+.row.lead .rk{color:var(--burn)}
+.row .who{min-width:0}
+.row .who b{font:600 14px/1.2 var(--body);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{font:400 12px/1.2 var(--body);color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sp{text-align:right}
+.row .sp b{font:700 20px/1 var(--display);font-variant-numeric:tabular-nums;display:block}
+.row .sp span{font:500 10.5px/1.3 var(--mono);color:var(--muted)}
+.row.lead .sp span{color:var(--hold)}
+.tagv{font-style:normal;font:500 9.5px/1 var(--mono);color:var(--burn);border:1px solid rgba(255,178,63,.4);border-radius:3px;padding:2px 4px;margin-left:6px;vertical-align:1px}
+
+.log{display:flex;flex-direction:column;gap:0}
+.log-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.log-row time{font:500 11.5px var(--mono);color:var(--muted)}
+.log-row .d{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:1px}
+.log-row .m{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--steel)}
+.log-row .m b{color:var(--fg);font-weight:600}
+.log-row .x{font:500 11.5px var(--mono);color:var(--muted)}
+
+.foot{font-size:12.5px;line-height:1.55;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;text-wrap:pretty}
+.foot a{color:var(--steel)}
+.foot b{color:var(--steel);font-weight:500}
+.srcs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.src{font:500 10.5px/1 var(--mono);padding:4px 7px;border-radius:4px;border:1px solid var(--line-strong);color:var(--muted)}
+.src.ok{color:var(--hold);border-color:rgba(82,211,160,.35)}
+.src.bad{color:var(--alert);border-color:rgba(255,107,92,.35)}
+
+/* ---------- boot overlay ---------- */
+.boot{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(10,20,36,.55) 0%,rgba(10,20,36,.92) 70%);transition:opacity .6s;padding:24px 16px}
+.boot.gone{opacity:0;pointer-events:none}
+.boot-in{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;max-width:340px}
+.scope{position:relative;width:200px;height:200px;border-radius:50%;border:1px solid var(--line-strong);background:
+  radial-gradient(circle,transparent 32%,var(--line) 32.5%,transparent 33.2%,transparent 65%,var(--line) 65.5%,transparent 66.2%),
+  linear-gradient(var(--line),var(--line)) center/1px 100% no-repeat,
+  linear-gradient(var(--line),var(--line)) center/100% 1px no-repeat;overflow:hidden}
+.scope .sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,178,63,0) 0deg,rgba(255,178,63,0) 290deg,rgba(255,178,63,.45) 359deg,rgba(255,178,63,0) 360deg);animation:sweep 2.6s linear infinite}
+.scope .blip{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--burn);box-shadow:0 0 8px var(--burn);opacity:0;animation:blip 2.6s ease-out infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+@keyframes blip{0%,8%{opacity:0}10%{opacity:1}60%{opacity:0}100%{opacity:0}}
+.boot h1{font:900 34px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.boot p{margin:0;color:var(--steel);font-size:14px}
+.boot .meter{width:220px;height:3px;background:var(--line-strong);border-radius:3px;overflow:hidden}
+.boot .meter i{display:block;height:100%;width:0;background:var(--burn);transition:width .3s}
+.boot .meta{font:500 11.5px/1.4 var(--mono);color:var(--muted)}
+.boot .so-far{font:500 13px/1.4 var(--mono);color:var(--burn);min-height:1.4em}
+.btn{background:var(--burn);color:#1B1206;font-weight:600;padding:11px 18px;border-radius:12px}
+.err{color:var(--alert)}
+
+@media (min-width:900px){
+  .sheet{left:16px;right:auto;top:calc(72px + var(--safe-t));bottom:16px;width:410px;height:auto;border-radius:20px;border:1px solid var(--line-strong);transform:none!important}
+  .grab{display:none}
+  .sheet-body{overflow-y:auto!important;padding-top:18px}
+  .toast{left:calc(50% + 213px);right:auto;transform:translate(-50%,-12px)}
+  .toast.show{transform:translate(-50%,0)}
+  .leaflet-top.leaflet-left{left:430px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="map" aria-label="Map showing the fastest aircraft"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M3 16 L11 10 L11 22 Z" fill="#FFB23F"/>
+      <path d="M12 16 L18 11.5 L18 20.5 Z" fill="#FFB23F" opacity=".7"/>
+      <path d="M19 16 L24 12.5 L24 19.5 Z" fill="#FFB23F" opacity=".45"/>
+      <path d="M25 16 L29 13.5 L29 18.5 Z" fill="#FFB23F" opacity=".25"/>
+    </svg>
+    <div>
+      <div class="brand-name">Fastest Aloft</div>
+      <div class="brand-sub" id="brandSub">Live ADS-B · ground speed</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="check" id="checkBox" title="Time until the next 10-second check">
+    <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="track" cx="18" cy="18" r="15" fill="none" stroke-width="3"/><circle class="prog" id="ringProg" cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="94.25"/></svg>
+    <div class="check-txt"><span class="check-l" id="checkLabel">Next check</span><span class="check-v num" id="checkVal">--</span></div>
+  </div>
+</header>
+
+<div class="map-btns">
+  <button class="mbtn" id="followBtn" aria-pressed="true" aria-label="Follow the fastest aircraft" title="Follow the leader">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg>
+  </button>
+  <button class="mbtn" id="covBtn" aria-pressed="true" aria-label="Show scanned coverage areas" title="Coverage scan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5"/><path d="M12 12 L19 5"/></svg>
+  </button>
+  <button class="mbtn" id="worldBtn" aria-label="Zoom out to the whole world" title="World view">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16 0 19M12 2.5c-3 3-3 16 0 19"/></svg>
+  </button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<section class="sheet" id="sheet" aria-label="Fastest aircraft details">
+  <button class="grab" id="grab" aria-label="Expand details" aria-expanded="false"><i></i></button>
+  <div class="sheet-body" id="sheetBody">
+
+    <div class="eyebrow">
+      <span class="live"><i></i>Fastest in the air</span>
+      <span class="pill" id="statusPill"><i></i><span id="statusText">Scanning</span></span>
+    </div>
+
+    <div class="hero">
+      <div class="speed" id="speed">---</div>
+      <div class="hero-side">
+        <button class="unit" id="unitBtn" aria-label="Change speed unit">kt</button>
+        <span class="hero-cap">Ground speed</span>
+        <span class="mach-chip num" id="machChip"></span>
+      </div>
+    </div>
+
+    <div class="tape-wrap"><canvas id="tape" aria-hidden="true"></canvas></div>
+
+    <div class="ident">
+      <div class="ident-row"><span class="callsign" id="callsign">-----</span><span class="airline" id="airline"></span></div>
+      <div class="ident-sub" id="identSub">Waiting for the first scan</div>
+      <div id="routeBox" hidden>
+        <div class="route">
+          <div class="ap"><b id="orgCode">---</b><span id="orgName"></span></div>
+          <div class="rbar"><i id="rbarFill"></i><svg id="rbarPlane" viewBox="0 0 64 64"><path fill="currentColor" d="M32 3C34 3 35.5 6 35.5 10L35.5 24L58 37L58 42L35.5 35.5L35.5 49L42 54L42 58L32 55.5L22 58L22 54L28.5 49L28.5 35.5L6 42L6 37L28.5 24L28.5 10C28.5 6 30 3 32 3Z"/></svg></div>
+          <div class="ap r"><b id="dstCode">---</b><span id="dstName"></span></div>
+        </div>
+        <div class="route-note" id="routeNote" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <p class="insight" id="insight">Scanning community ADS-B receivers for the fastest aircraft aloft.</p>
+
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><span>Flight data</span><em id="ageNote"></em></div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div>
+      <div class="sec-h" style="margin-bottom:8px"><span>Speed while leading</span><em id="sparkNote"></em></div>
+      <svg class="spark" id="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
+
+    <figure class="photo" id="photo" hidden style="margin:0"><img id="photoImg" alt=""><figcaption id="photoCap"></figcaption></figure>
+
+    <div>
+      <div class="sec-h" style="margin-bottom:8px"><span>Closest challengers</span><em id="poolNote"></em></div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div>
+      <div class="sec-h" style="margin-bottom:6px"><span>10-second checks</span><em id="checkNote"></em></div>
+      <div class="log" id="checkLog"></div>
+    </div>
+
+    <div>
+      <div class="sec-h" style="margin-bottom:6px"><span>Leaders this session</span></div>
+      <div class="log" id="reignLog"></div>
+    </div>
+
+    <div class="foot">
+      Speeds are <b>ground speed</b> from aircraft ADS-B broadcasts, picked up by volunteer receivers and shared through free public feeds. The app scans busy airspace on rotation and re-checks the leader and its closest challengers every 10 seconds. Aircraft over open ocean, outside receiver range, or flying without a public transponder signal (most military jets) can't be seen, so "fastest" means fastest among aircraft that are visible right now. Readings above 680 kt need a second matching report before they count, which filters out data glitches.
+      <div class="srcs" id="srcs"></div>
+    </div>
+  </div>
+</section>
+
+<div class="boot" id="boot">
+  <div class="boot-in">
+    <div class="scope" aria-hidden="true">
+      <div class="sweep"></div>
+      <span class="blip" style="left:62%;top:30%;animation-delay:.3s"></span>
+      <span class="blip" style="left:30%;top:58%;animation-delay:1.4s"></span>
+      <span class="blip" style="left:70%;top:66%;animation-delay:1.9s"></span>
+      <span class="blip" style="left:44%;top:22%;animation-delay:.9s"></span>
+    </div>
+    <h1>Scanning the sky</h1>
+    <p id="bootMsg">Sweeping the world's busiest airspace for the fastest aircraft.</p>
+    <div class="meter"><i id="bootBar"></i></div>
+    <div class="meta num" id="bootMeta">0 of 0 regions · 0 aircraft</div>
+    <div class="so-far num" id="bootLeader"></div>
+    <button class="btn" id="retryBtn" hidden>Try again</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* ================= configuration ================= */
+const CHECK_MS = 10000;          // champion check interval
+const STALE_MS = 150000;         // ignore readings older than this
+const CHAMP_STALE_MS = 45000;    // leader counts as lost after this long without a fresh report
+const CONFIRM_ABOVE = 680;       // kt; faster readings need a second consistent report
+const MAX_PLAUSIBLE = 1100;      // kt; anything faster is treated as a glitch
+const RADIUS_NM = 250;
+const OPENSKY_EVERY = 15 * 60000;
+
+// 250 nm scan circles over the airspace with the densest receiver coverage, weighted to jet-stream corridors.
+const REGIONS = [
+  ["Gander / North Atlantic", 48.6, -56.0], ["Maritimes", 46.0, -64.5], ["New England", 43.0, -70.5],
+  ["New York / Philadelphia", 40.2, -75.0], ["Washington DC", 38.0, -78.0], ["Carolinas", 34.8, -80.0],
+  ["Florida", 28.2, -81.6], ["Great Lakes", 42.3, -84.0], ["Ontario / Quebec", 46.5, -76.0],
+  ["Chicago / Midwest", 41.0, -89.0], ["Tennessee Valley", 35.8, -87.0], ["Texas", 31.5, -97.0],
+  ["Central Plains", 38.5, -98.5], ["Colorado", 39.5, -105.0], ["Desert Southwest", 33.8, -112.5],
+  ["California", 36.8, -120.5], ["Pacific Northwest", 46.5, -121.5], ["Alberta", 51.0, -113.5],
+  ["Alaska", 61.0, -150.0], ["Hawaii", 21.0, -157.5], ["Mexico", 20.0, -99.0],
+  ["Iceland", 64.0, -21.0], ["Ireland", 53.2, -7.5], ["England", 52.2, -1.0],
+  ["France", 46.8, 2.5], ["Benelux / Germany", 51.0, 8.5], ["Central Europe", 48.5, 15.5],
+  ["Iberia", 40.2, -4.0], ["Italy", 42.5, 12.5], ["Scandinavia", 58.5, 13.0],
+  ["Poland / Baltics", 53.0, 21.5], ["Balkans / Istanbul", 41.8, 26.5], ["Gulf", 25.3, 53.5],
+  ["India North", 28.4, 77.0], ["Thailand", 13.7, 100.6], ["Singapore", 1.5, 104.0],
+  ["Hong Kong / Taiwan", 23.5, 117.5], ["Korea / West Japan", 35.2, 129.5], ["Tokyo", 35.6, 139.8],
+  ["Sydney / Melbourne", -35.0, 149.0], ["São Paulo", -23.2, -46.5], ["Johannesburg", -26.0, 28.0]
+];
+
+// Three interchangeable community feeds that share the readsb JSON format. First healthy one wins.
+const SOURCES = [
+  { name: "adsb.lol",
+    point: (la, lo, r) => `https://api.adsb.lol/v2/point/${la}/${lo}/${r}`,
+    hex: h => `https://api.adsb.lol/v2/hex/${h}`,
+    mil: () => `https://api.adsb.lol/v2/mil` },
+  { name: "adsb.fi",
+    point: (la, lo, r) => `https://opendata.adsb.fi/api/v2/lat/${la}/lon/${lo}/dist/${r}`,
+    hex: h => `https://opendata.adsb.fi/api/v2/hex/${h}`,
+    mil: () => `https://opendata.adsb.fi/api/v2/mil` },
+  { name: "airplanes.live",
+    point: (la, lo, r) => `https://api.airplanes.live/v2/point/${la}/${lo}/${r}`,
+    hex: h => `https://api.airplanes.live/v2/hex/${h}`,
+    mil: () => `https://api.airplanes.live/v2/mil` }
+];
+const srcState = SOURCES.map(() => ({ ok: 0, fails: 0, coolUntil: 0, last: null }));
+const osState = { name: "OpenSky", ok: 0, fails: 0, nextAt: 0, last: null };
+
+const PLANE_PATH = "M32 3C34 3 35.5 6 35.5 10L35.5 24L58 37L58 42L35.5 35.5L35.5 49L42 54L42 58L32 55.5L22 58L22 54L28.5 49L28.5 35.5L6 42L6 37L28.5 24L28.5 10C28.5 6 30 3 32 3Z";
+
+/* ================= state ================= */
+const pool = new Map();            // hex -> latest normalized record
+const recheck = new Set();         // hexes needing confirmation
+const suspects = new Map();        // hex -> fast reading awaiting a second matching report
+const regionHeat = REGIONS.map(() => 0);
+const regionLast = REGIONS.map(() => 0);
+const enrich = new Map();          // hex -> {aircraft, route, photo}
+let champ = null;                  // {hex, start, checks, max, history:[{t,gs}], trail:[[lat,lon]]}
+const reigns = [];                 // closed + current
+const checks = [];
+let checkNo = 0, rrIdx = 0, nextCheckAt = 0, checking = false, loopTimer = null, booted = false;
+let unit = "kt";
+let follow = true, showCov = true;
+try { unit = localStorage.getItem("fa-unit") || "kt"; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= units & formatting ================= */
+const UNITS = { kt: { k: 1, label: "kt" }, mph: { k: 1.150779, label: "mph" }, kmh: { k: 1.852, label: "km/h" } };
+const conv = kt => kt * UNITS[unit].k;
+const fmtInt = n => Math.round(n).toLocaleString("en-US");
+const fmtSpeed = kt => fmtInt(conv(kt));
+const CARD = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const cardinal = d => CARD[Math.round(((d % 360) + 360) % 360 / 22.5) % 16];
+const fmtLat = v => `${Math.abs(v).toFixed(2)}°${v >= 0 ? "N" : "S"}`;
+const fmtLon = v => `${Math.abs(v).toFixed(2)}°${v >= 0 ? "E" : "W"}`;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const hhmmss = t => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const hhmm = t => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function dur(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return h ? `${h}h ${m}m` : m ? `${m}m ${String(x).padStart(2, "0")}s` : `${x}s`;
+}
+function soundSpeedKt(r) {
+  let tC = typeof r.oat === "number" ? r.oat : Math.max(-56.5, 15 - 0.0019812 * (r.alt || 0));
+  return 38.96785 * Math.sqrt(tC + 273.15);
+}
+function haversineNm(a, b) {
+  const R = 3440.065, toR = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * toR, dLon = (b[1] - a[1]) * toR;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * toR) * Math.cos(b[0] * toR) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function greatCircle(a, b, n = 64) {
+  const toR = Math.PI / 180, toD = 180 / Math.PI;
+  const [la1, lo1, la2, lo2] = [a[0] * toR, a[1] * toR, b[0] * toR, b[1] * toR];
+  const d = 2 * Math.asin(Math.sqrt(Math.sin((la2 - la1) / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin((lo2 - lo1) / 2) ** 2));
+  if (!d) return [a, b];
+  const pts = []; let prevLon = null;
+  for (let i = 0; i <= n; i++) {
+    const f = i / n, A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(la1) * Math.cos(lo1) + B * Math.cos(la2) * Math.cos(lo2);
+    const y = A * Math.cos(la1) * Math.sin(lo1) + B * Math.cos(la2) * Math.sin(lo2);
+    const z = A * Math.sin(la1) + B * Math.sin(la2);
+    let lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * toD, lon = Math.atan2(y, x) * toD;
+    if (prevLon !== null) { while (lon - prevLon > 180) lon -= 360; while (lon - prevLon < -180) lon += 360; }
+    prevLon = lon; pts.push([lat, lon]);
+  }
+  return pts;
+}
+
+/* ================= networking ================= */
+async function getJSON(url, ms = 9000) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctl.signal, cache: "no-store" });
+    if (!res.ok) { const e = new Error("HTTP " + res.status); e.status = res.status; throw e; }
+    return await res.json();
+  } finally { clearTimeout(timer); }
+}
+async function adsb(kind, ...args) {
+  let lastErr = null;
+  for (let i = 0; i < SOURCES.length; i++) {
+    const st = srcState[i];
+    if (st.coolUntil > Date.now()) continue;
+    try {
+      const j = await getJSON(SOURCES[i][kind](...args));
+      st.ok++; st.fails = 0; st.last = Date.now();
+      return { list: j.ac || j.aircraft || [], src: SOURCES[i].name, at: Date.now() };
+    } catch (e) {
+      lastErr = e; st.fails++;
+      st.coolUntil = Date.now() + Math.min(300000, (e.status === 429 ? 60000 : 15000) * st.fails);
+    }
+  }
+  throw lastErr || new Error("All feeds are cooling down");
+}
+
+/* ================= normalization ================= */
+const GOOD_TYPES = new Set(["adsb_icao", "adsb_icao_nt", "adsr_icao", "adsc", "adsb_other", "adsr_other", undefined]);
+function normAdsb(a, at, src) {
+  if (!a || !a.hex || typeof a.gs !== "number") return null;
+  if (a.alt_baro === "ground" || a.lat == null || a.lon == null) return null;
+  if (!GOOD_TYPES.has(a.type)) return null;            // skip MLAT / TIS-B: their speeds are noisy
+  const alt = typeof a.alt_baro === "number" ? a.alt_baro : (typeof a.alt_geom === "number" ? a.alt_geom : null);
+  if (alt == null || alt < 1000) return null;
+  const seen = typeof a.seen === "number" ? a.seen : 0;
+  const seenPos = typeof a.seen_pos === "number" ? a.seen_pos : seen;
+  if (seen > 30 || seenPos > 60) return null;
+  if (a.gs > MAX_PLAUSIBLE) return null;
+  if (typeof a.tas === "number" && a.tas > 0 && a.gs - a.tas > 320) return null;  // stronger tailwind than any jet stream: bad data
+  return {
+    hex: a.hex.toLowerCase().replace("~", ""), flight: (a.flight || "").trim(), reg: a.r || "", type: a.t || "",
+    desc: a.desc || "", op: a.ownOp || "", year: a.year || "", mil: !!(a.dbFlags & 1),
+    lat: a.lat, lon: a.lon, alt, altGeom: a.alt_geom, gs: a.gs, tas: a.tas, ias: a.ias, mach: a.mach,
+    track: typeof a.track === "number" ? a.track : (typeof a.true_heading === "number" ? a.true_heading : null),
+    vr: typeof a.baro_rate === "number" ? a.baro_rate : a.geom_rate, squawk: a.squawk, ws: a.ws, wd: a.wd, oat: a.oat,
+    cat: a.category, t: at - seen * 1000, src
+  };
+}
+function normOpenSky(s, at) {
+  // [icao24, callsign, country, time_position, last_contact, lon, lat, baro_alt, on_ground, velocity, track, vrate, sensors, geo_alt, squawk, spi, position_source]
+  if (!s || s[8] || s[9] == null || s[5] == null || s[6] == null) return null;
+  if (s[16] != null && s[16] !== 0) return null;
+  const altFt = s[7] != null ? s[7] * 3.28084 : (s[13] != null ? s[13] * 3.28084 : null);
+  if (altFt == null || altFt < 1000) return null;
+  const gs = s[9] * 1.943844;
+  if (gs > MAX_PLAUSIBLE) return null;
+  const t = (s[3] || s[4]) * 1000;
+  if (at - t > 60000) return null;
+  return {
+    hex: String(s[0]).toLowerCase(), flight: (s[1] || "").trim(), reg: "", type: "", desc: "", op: "", year: "",
+    country: s[2], mil: false, lat: s[6], lon: s[5], alt: Math.round(altFt), gs, track: s[10],
+    vr: s[11] != null ? s[11] * 196.85 : null, squawk: s[14], t, src: "OpenSky"
+  };
+}
+
+function upsert(r) {
+  const prev = pool.get(r.hex);
+  if (prev && prev.t >= r.t) return;
+  // keep descriptive fields that some feeds omit
+  if (prev) for (const k of ["reg", "type", "desc", "op", "year", "country"]) if (!r[k] && prev[k]) r[k] = prev[k];
+  const sus = suspects.get(r.hex);
+  const consistent = (prev && (r.t - prev.t) < 180000 && Math.abs(r.gs - prev.gs) <= 45) ||
+                     (sus && r.t > sus.t && Math.abs(r.gs - sus.gs) <= 45);
+  if (r.gs >= CONFIRM_ABOVE && !consistent) {
+    // fast reading without a matching earlier report: hold it aside until a second one agrees
+    suspects.set(r.hex, r); recheck.add(r.hex);
+    return;
+  }
+  suspects.delete(r.hex);
+  r.confirmed = true;
+  pool.set(r.hex, r);
+  if (champ && champ.hex === r.hex) {
+    const last = champ.trail[champ.trail.length - 1];
+    if (!last || last[0] !== r.lat || last[1] !== r.lon) champ.trail.push([r.lat, r.lon]);
+    if (champ.trail.length > 600) champ.trail.shift();
+    champ.history.push({ t: r.t, gs: r.gs });
+    if (champ.history.length > 400) champ.history.shift();
+  }
+}
+function ingest(res, regionIdx) {
+  let best = 0, n = 0;
+  for (const a of res.list) {
+    const r = normAdsb(a, res.at, res.src);
+    if (!r) continue;
+    n++; upsert(r); if (r.gs > best) best = r.gs;
+  }
+  if (regionIdx != null) { regionHeat[regionIdx] = best; regionLast[regionIdx] = Date.now(); flashRegion(regionIdx); }
+  return n;
+}
+
+/* ================= scanning ================= */
+async function scanRegion(i) {
+  const [, la, lo] = REGIONS[i];
+  const res = await adsb("point", la, lo, RADIUS_NM);
+  return ingest(res, i);
+}
+async function scanHex(h) { const res = await adsb("hex", h); recheck.delete(h); return ingest(res); }
+async function scanMil() { const res = await adsb("mil"); return ingest(res); }
+async function openSkySweep() {
+  if (Date.now() < osState.nextAt) return;
+  osState.nextAt = Date.now() + OPENSKY_EVERY;
+  try {
+    const j = await getJSON("https://opensky-network.org/api/states/all", 20000);
+    const at = Date.now(); let n = 0;
+    for (const s of j.states || []) { const r = normOpenSky(s, at); if (r) { upsert(r); n++; } }
+    osState.ok++; osState.last = at;
+  } catch (e) {
+    osState.fails++;
+    osState.nextAt = Date.now() + (e.status === 429 ? 6 * 3600000 : 30 * 60000);
+  }
+}
+
+function freshRanking() {
+  const now = Date.now();
+  return [...pool.values()]
+    .filter(r => r.confirmed && now - r.t < STALE_MS && !(champ && r.hex === champ.hex && now - r.t > CHAMP_STALE_MS))
+    .sort((a, b) => b.gs - a.gs);
+}
+function prune() {
+  const now = Date.now();
+  for (const [h, r] of pool) if (now - r.t > STALE_MS * 2 && !(champ && champ.hex === h)) pool.delete(h);
+  for (const [h, r] of suspects) if (now - r.t > 120000) { suspects.delete(h); recheck.delete(h); }
+}
+
+/* ================= the 10-second check ================= */
+async function runCheck() {
+  if (checking) return;
+  checking = true; checkNo++;
+  $("checkBox").classList.add("busy");
+  $("checkLabel").textContent = "Checking"; $("checkVal").textContent = "#" + checkNo;
+  const jobs = [];
+  const hexes = [];
+  const add = h => { if (h && !hexes.includes(h) && hexes.length < 4) hexes.push(h); };
+  if (champ) add(champ.hex);
+  for (const h of recheck) add(h);
+  for (const r of freshRanking().slice(0, 4)) add(r.hex);
+  hexes.forEach(h => jobs.push(() => scanHex(h)));
+  const now = Date.now();
+  const rr = rrIdx++ % REGIONS.length;
+  jobs.push(() => scanRegion(rr));
+  let hot = -1, hotV = -1;
+  REGIONS.forEach((_, i) => { if (i !== rr && now - regionLast[i] > 30000 && regionHeat[i] > hotV) { hot = i; hotV = regionHeat[i]; } });
+  if (hot >= 0) jobs.push(() => scanRegion(hot));
+  if (checkNo % 3 === 0) jobs.push(() => scanMil());
+  if (Date.now() >= osState.nextAt) openSkySweep();
+  let okCount = 0;
+  for (const job of jobs) { try { await job(); okCount++; } catch (e) {} await sleep(180); }
+  prune();
+  evaluate(okCount === 0);
+  checking = false;
+  $("checkBox").classList.remove("busy");
+}
+
+function evaluate(feedDown) {
+  const now = Date.now();
+  const ranked = freshRanking();
+  const top = ranked[0];
+  let verdict, detail = {};
+  if (feedDown && champ) {
+    verdict = "nodata";
+  } else if (!top) {
+    verdict = "empty";
+  } else if (!champ) {
+    crown(top, "first"); verdict = "first";
+  } else if (top.hex === champ.hex) {
+    champ.checks++; champ.max = Math.max(champ.max, top.gs);
+    verdict = "held"; detail.margin = ranked[1] ? top.gs - ranked[1].gs : null; detail.next = ranked[1];
+  } else {
+    const cur = pool.get(champ.hex);
+    const lost = !cur || now - cur.t > CHAMP_STALE_MS;
+    detail.prev = cur || champ.snap; detail.by = top;
+    crown(top, lost ? "lost" : "overtaken");
+    verdict = lost ? "lost" : "overtaken";
+  }
+  checks.unshift({ n: checkNo, t: now, verdict, leader: champ && pool.get(champ.hex), ...detail });
+  if (checks.length > 30) checks.pop();
+  if (verdict === "overtaken" || verdict === "lost") showToast(verdict, detail);
+  renderAll();
+}
+
+function crown(r, reason) {
+  const now = Date.now();
+  if (champ) {
+    const prevReign = reigns[0];
+    if (prevReign && !prevReign.end) prevReign.end = now;
+  }
+  champ = { hex: r.hex, start: now, checks: 1, max: r.gs, reason, history: [{ t: r.t, gs: r.gs }], trail: [[r.lat, r.lon]], snap: r };
+  reigns.unshift({ hex: r.hex, flight: r.flight, type: r.type, start: now, end: null, max: r.gs, reason });
+  if (reigns.length > 25) reigns.pop();
+  loadEnrichment(r);
+  drawRoute(); drawTrail();
+  if (follow) map.flyTo([r.lat, r.lon], Math.max(map.getZoom(), 5), { duration: 1.6 });
+}
+
+/* ================= enrichment (route, owner, photo) ================= */
+async function loadEnrichment(r) {
+  if (enrich.has(r.hex)) { renderAll(); return; }
+  const e = { aircraft: null, route: null, photo: null };
+  enrich.set(r.hex, e);
+  const jobs = [
+    getJSON(`https://api.adsbdb.com/v0/aircraft/${r.hex}`, 8000).then(j => { e.aircraft = j?.response?.aircraft || null; }).catch(() => {}),
+    getJSON(`https://api.planespotters.net/pub/photos/hex/${r.hex}`, 8000).then(j => { e.photo = (j?.photos || [])[0] || null; }).catch(() => {})
+  ];
+  if (r.flight) jobs.push(getJSON(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(r.flight)}`, 8000)
+    .then(j => { e.route = j?.response?.flightroute || null; }).catch(() => {}));
+  await Promise.all(jobs);
+  if (champ && champ.hex === r.hex) { drawRoute(); renderAll(); }
+}
+function plausibleRoute(route, r) {
+  const o = route?.origin, d = route?.destination;
+  if (!o || !d || o.latitude == null || d.latitude == null) return null;
+  const A = [o.latitude, o.longitude], B = [d.latitude, d.longitude], P = [r.lat, r.lon];
+  const total = haversineNm(A, B), flown = haversineNm(A, P), left = haversineNm(P, B);
+  if (total < 50 || flown + left > total * 1.25 + 60) return null;   // callsign-route databases go stale; reject mismatches
+  return { o, d, A, B, total, flown, left, pct: Math.max(0, Math.min(1, flown / (flown + left))) };
+}
+
+/* ================= map ================= */
+const map = L.map("map", { zoomControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 11, attributionControl: true })
+  .setView([42, -40], 3);
+map.attributionControl.setPosition("topleft").setPrefix(false);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  subdomains: "abcd", maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+
+const covLayer = L.layerGroup().addTo(map);
+const covCircles = REGIONS.map(([n, la, lo]) => L.circle([la, lo], { radius: RADIUS_NM * 1852, color: "#A4B7CC", weight: 1, opacity: .09, fill: false, className: "cov", interactive: false }).addTo(covLayer));
+function flashRegion(i) {
+  if (!showCov) return;
+  const el = covCircles[i].getElement && covCircles[i].getElement();
+  if (!el) return;
+  el.classList.add("hit"); void el.getBoundingClientRect();
+  requestAnimationFrame(() => setTimeout(() => el.classList.remove("hit"), 60));
+}
+
+const routeLayer = L.layerGroup().addTo(map);
+const trailLayer = L.layerGroup().addTo(map);
+const rivalLayer = L.layerGroup().addTo(map);
+let champMarker = null;
+
+function champIconHtml(r) {
+  return `<div class="champ-wrap"><div class="halo"></div><div class="ring"></div>
+    <svg viewBox="0 0 64 64" style="transform:rotate(${r.track || 0}deg)"><path d="${PLANE_PATH}" fill="#FFB23F" stroke="#1B1206" stroke-width="1.5"/></svg>
+    <span class="champ-tag">${esc(r.flight || r.reg || r.hex.toUpperCase())} · ${fmtSpeed(r.gs)}</span></div>`;
+}
+function drawChamp() {
+  if (!champ) return;
+  const r = pool.get(champ.hex) || champ.snap;
+  const icon = L.divIcon({ className: "", html: champIconHtml(r), iconSize: [64, 64], iconAnchor: [32, 32] });
+  if (!champMarker) {
+    champMarker = L.marker([r.lat, r.lon], { icon, zIndexOffset: 1000, keyboard: false }).addTo(map);
+    champMarker.on("click", () => openSheet(true));
+  } else {
+    const el = champMarker.getElement();
+    const svg = el && el.querySelector("svg");
+    const sameAircraft = el && el.dataset.hex === r.hex;
+    champMarker.setLatLng([r.lat, r.lon]);
+    if (sameAircraft && svg) {
+      svg.style.transform = `rotate(${r.track || 0}deg)`;
+      el.querySelector(".champ-tag").textContent = `${r.flight || r.reg || r.hex.toUpperCase()} · ${fmtSpeed(r.gs)}`;
+    } else champMarker.setIcon(icon);
+  }
+  const el = champMarker.getElement(); if (el) el.dataset.hex = r.hex;
+  if (follow && booted) map.panTo([r.lat, r.lon], { animate: true, duration: 1.2 });
+}
+function drawTrail() {
+  trailLayer.clearLayers();
+  if (!champ || champ.trail.length < 2) return;
+  L.polyline(champ.trail, { color: "#FFB23F", weight: 9, opacity: .12, interactive: false }).addTo(trailLayer);
+  L.polyline(champ.trail, { color: "#FFB23F", weight: 2.5, opacity: .9, interactive: false }).addTo(trailLayer);
+}
+function drawRoute() {
+  routeLayer.clearLayers();
+  if (!champ) return;
+  const e = enrich.get(champ.hex), r = pool.get(champ.hex) || champ.snap;
+  const pr = e && plausibleRoute(e.route, r);
+  if (!pr) return;
+  L.polyline(greatCircle(pr.A, pr.B), { color: "#A4B7CC", weight: 1.5, opacity: .55, dashArray: "4 7", interactive: false }).addTo(routeLayer);
+  for (const [ap, pos] of [[pr.o, pr.A], [pr.d, pr.B]]) {
+    L.circleMarker(pos, { radius: 4, color: "#A4B7CC", weight: 1.5, fillColor: "#0A1424", fillOpacity: 1, interactive: false }).addTo(routeLayer);
+    L.marker(pos, { icon: L.divIcon({ className: "", html: `<div class="ap-label">${esc(ap.iata_code || ap.icao_code)}</div>`, iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(routeLayer);
+  }
+}
+function drawRivals(ranked) {
+  rivalLayer.clearLayers();
+  ranked.filter(r => !champ || r.hex !== champ.hex).slice(0, 8).forEach((r, i) => {
+    const html = `<div class="rival"><svg viewBox="0 0 64 64" style="transform:rotate(${r.track || 0}deg)"><path d="${PLANE_PATH}" fill="#A4B7CC" fill-opacity="${i < 3 ? .95 : .6}" stroke="#0A1424" stroke-width="2"/></svg>${i < 4 ? `<span>${esc(r.flight || r.hex.toUpperCase())} ${fmtSpeed(r.gs)}</span>` : ""}</div>`;
+    const m = L.marker([r.lat, r.lon], { icon: L.divIcon({ className: "", html, iconSize: [26, 26], iconAnchor: [13, 13] }), keyboard: false }).addTo(rivalLayer);
+    m.bindPopup(() => popupHtml(r, i + 2));
+  });
+}
+function popupHtml(r, rank) {
+  const gap = champ ? (pool.get(champ.hex)?.gs || 0) - r.gs : 0;
+  return `<div style="font:700 20px/1 var(--display);letter-spacing:.05em">${esc(r.flight || r.hex.toUpperCase())}</div>
+    <div style="color:var(--muted);margin:3px 0 8px">${esc([r.type, r.reg, r.op].filter(Boolean).join(" · ") || r.country || "Unknown aircraft")}</div>
+    <div class="num" style="font:600 13px var(--mono)">#${rank} · ${fmtSpeed(r.gs)} ${UNITS[unit].label} <span style="color:var(--muted)">(${fmtSpeed(gap)} behind)</span></div>
+    <div class="num" style="font:400 12px var(--mono);color:var(--steel);margin-top:4px">FL${String(Math.round(r.alt / 100)).padStart(3, "0")} · ${r.track != null ? Math.round(r.track) + "° " + cardinal(r.track) : "--"}</div>`;
+}
+
+/* ================= speed tape ================= */
+const tape = $("tape"); const tctx = tape.getContext("2d");
+let tapeShown = null, tapeTarget = null, tapeMarks = [];
+function sizeTape() {
+  const dpr = window.devicePixelRatio || 1, w = tape.clientWidth, h = tape.clientHeight;
+  tape.width = Math.round(w * dpr); tape.height = Math.round(h * dpr);
+  tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawTape();
+}
+function drawTape() {
+  const w = tape.clientWidth, h = tape.clientHeight;
+  tctx.clearRect(0, 0, w, h);
+  if (tapeShown == null) return;
+  const k = UNITS[unit].k, v = tapeShown * k;
+  const minor = unit === "kmh" ? 20 : 10, major = unit === "kmh" ? 100 : 50;
+  const ppu = 2.6 / k;           // pixels per display unit (constant pixels per knot)
+  const cx = w / 2, base = 34;
+  const lo = Math.floor((v - cx / ppu) / minor) * minor, hi = v + cx / ppu;
+  tctx.strokeStyle = "rgba(164,183,204,.45)"; tctx.fillStyle = "#7489A3";
+  tctx.font = "500 10.5px 'IBM Plex Mono', monospace"; tctx.textAlign = "center";
+  tctx.beginPath(); tctx.moveTo(0, base + .5); tctx.lineTo(w, base + .5); tctx.stroke();
+  for (let s = lo; s <= hi; s += minor) {
+    if (s < 0) continue;
+    const x = Math.round(cx + (s - v) * ppu) + .5, isMaj = s % major === 0;
+    tctx.beginPath(); tctx.moveTo(x, base); tctx.lineTo(x, base - (isMaj ? 13 : 6)); tctx.stroke();
+    if (isMaj) tctx.fillText(String(s), x, base + 15);
+  }
+  // speed of sound reference band
+  if (tapeMarks.sound) {
+    const x = cx + (tapeMarks.sound * k - v) * ppu;
+    if (x > 0 && x < w) {
+      tctx.fillStyle = "rgba(164,183,204,.10)"; tctx.fillRect(x, 6, w - x, base - 6);
+      tctx.strokeStyle = "rgba(164,183,204,.6)"; tctx.setLineDash([2, 3]); tctx.beginPath(); tctx.moveTo(x + .5, 4); tctx.lineTo(x + .5, base); tctx.stroke(); tctx.setLineDash([]);
+      tctx.fillStyle = "#A4B7CC"; tctx.textAlign = "left"; tctx.font = "500 9.5px 'IBM Plex Mono', monospace";
+      tctx.fillText("MACH 1 here", x + 4, 12); tctx.textAlign = "center";
+    }
+  }
+  // challengers
+  (tapeMarks.rivals || []).forEach((r, i) => {
+    const x = cx + (r.gs * k - v) * ppu;
+    if (x < 8 || x > w - 8) return;
+    tctx.fillStyle = i === 0 ? "#A4B7CC" : "rgba(164,183,204,.55)";
+    tctx.beginPath(); tctx.moveTo(x, base - 2); tctx.lineTo(x - 5, base - 10); tctx.lineTo(x + 5, base - 10); tctx.closePath(); tctx.fill();
+    if (i === 0) { tctx.font = "500 9.5px 'IBM Plex Mono', monospace"; tctx.fillText(r.flight || "#2", x, base - 15); }
+  });
+  // leader pointer
+  tctx.fillStyle = "#FFB23F";
+  tctx.fillRect(cx - 1, 2, 2, base - 1);
+  tctx.beginPath(); tctx.moveTo(cx, base + 2); tctx.lineTo(cx - 7, base + 11); tctx.lineTo(cx + 7, base + 11); tctx.closePath(); tctx.fill();
+}
+function animateTape() {
+  if (tapeTarget != null) {
+    if (tapeShown == null) tapeShown = tapeTarget - 40;
+    const d = tapeTarget - tapeShown;
+    if (Math.abs(d) > .05) { tapeShown += d * .08; drawTape(); }
+  }
+  requestAnimationFrame(animateTape);
+}
+
+/* ================= number tween ================= */
+let speedShown = null, speedTween = null;
+function setSpeed(kt) {
+  const target = conv(kt);
+  const from = speedShown == null ? target * .85 : speedShown;
+  const t0 = performance.now(), D = 700;
+  cancelAnimationFrame(speedTween);
+  const step = now => {
+    const p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+    speedShown = from + (target - from) * e;
+    $("speed").textContent = fmtInt(speedShown);
+    if (p < 1) speedTween = requestAnimationFrame(step);
+  };
+  speedTween = requestAnimationFrame(step);
+}
+
+/* ================= rendering ================= */
+function renderAll() {
+  const ranked = freshRanking();
+  drawRivals(ranked);
+  renderSources();
+  $("poolNote").textContent = `${fmtInt(ranked.length)} aircraft in view`;
+  if (!champ) return;
+  const r = pool.get(champ.hex) || champ.snap;
+  const e = enrich.get(champ.hex) || {};
+  const ac = e.aircraft || {};
+  drawChamp(); drawTrail();
+
+  setSpeed(r.gs);
+  $("unitBtn").textContent = UNITS[unit].label;
+  const sound = soundSpeedKt(r);
+  $("machChip").textContent = r.mach ? `Mach ${r.mach.toFixed(2)} · TAS ${fmtSpeed(r.tas || 0)}` : (r.tas ? `TAS ${fmtSpeed(r.tas)} ${UNITS[unit].label}` : "");
+  tapeTarget = r.gs;
+  tapeMarks = { rivals: ranked.filter(x => x.hex !== r.hex).slice(0, 3), sound };
+  drawTape();
+
+  // status pill
+  const last = checks[0];
+  const pill = $("statusPill");
+  pill.className = "pill " + (last && (last.verdict === "overtaken") ? "new" : last && last.verdict === "lost" ? "lost" : last && last.verdict === "nodata" ? "lost" : "hold");
+  $("statusText").textContent = statusText(last);
+
+  // identity
+  $("callsign").textContent = r.flight || r.reg || r.hex.toUpperCase();
+  const airline = e.route?.airline?.name || r.op || ac.registered_owner || (r.mil ? "Military" : "") || r.country || "";
+  $("airline").textContent = airline;
+  const typeName = r.desc || [ac.manufacturer, ac.type].filter(Boolean).join(" ") || r.type || "Aircraft type unknown";
+  const bits = [`<b>${esc(typeName)}</b>`];
+  if (r.reg || ac.registration) bits.push(esc(r.reg || ac.registration));
+  bits.push(`<span class="num">${esc(r.hex.toUpperCase())}</span>`);
+  if (r.year) bits.push(`built ${esc(r.year)}`);
+  $("identSub").innerHTML = bits.join(" · ");
+
+  const pr = plausibleRoute(e.route, r);
+  $("routeBox").hidden = !pr;
+  if (pr) {
+    $("orgCode").textContent = pr.o.iata_code || pr.o.icao_code; $("orgName").textContent = pr.o.municipality || pr.o.name || "";
+    $("dstCode").textContent = pr.d.iata_code || pr.d.icao_code; $("dstName").textContent = pr.d.municipality || pr.d.name || "";
+    $("rbarFill").style.width = (pr.pct * 100).toFixed(1) + "%";
+    $("rbarPlane").style.left = (pr.pct * 100).toFixed(1) + "%";
+    const etaMin = pr.left / Math.max(r.gs, 1) * 60;
+    $("routeNote").textContent = `${fmtInt(pr.left)} nm to go · about ${dur(etaMin * 60000)} at this speed`;
+  }
+
+  $("insight").innerHTML = insight(r, ranked, sound);
+  renderGrid(r, sound);
+  renderSpark();
+  renderPhoto(e.photo, ac);
+  renderBoard(ranked, r);
+  renderChecks();
+  renderReigns();
+  tickClock();
+}
+function statusText(c) {
+  if (!c || !champ) return "Scanning";
+  if (c.verdict === "nodata") return "Feeds not answering";
+  if (c.verdict === "overtaken") return "New leader";
+  if (c.verdict === "lost") return "Took over · prior leader lost";
+  return `Leading ${dur(Date.now() - champ.start)} · ${champ.checks} ${champ.checks === 1 ? "check" : "checks"}`;
+}
+function insight(r, ranked, sound) {
+  const u = UNITS[unit].label;
+  const next = ranked.find(x => x.hex !== r.hex);
+  const lead = next ? `<strong>${fmtSpeed(r.gs - next.gs)} ${u}</strong> ahead of ${esc(next.flight || next.hex.toUpperCase())}.` : "";
+  if (r.mil) return `Military aircraft, broadcasting openly. Most military jets switch off public position reports, so only some appear here. ${lead}`;
+  if (r.tas && r.gs - r.tas > 40) {
+    const push = r.gs - r.tas;
+    return `Riding a <strong>${fmtSpeed(push)} ${u} tailwind</strong>. Through the air it's doing ${fmtSpeed(r.tas)} ${u}${r.mach ? ` (Mach ${r.mach.toFixed(2)})` : ""}; the jet stream adds the rest. ${lead}`;
+  }
+  if (r.gs > sound) return `Moving over the ground faster than the local speed of sound (${fmtSpeed(sound)} ${u}), yet still subsonic through the air. The difference is tailwind. ${lead}`;
+  return `Cruising at FL${String(Math.round(r.alt / 100)).padStart(3, "0")} heading ${r.track != null ? cardinal(r.track) : "unknown"}. ${lead}`;
+}
+function cell(k, v, extra = "", cls = "") {
+  return `<div class="cell ${cls}"><div class="k">${k}</div><div class="v ${v == null ? "dim" : ""}">${v == null ? "--" : v}${extra}</div></div>`;
+}
+function renderGrid(r, sound) {
+  const u = UNITS[unit].label;
+  const vr = typeof r.vr === "number" ? r.vr : null;
+  const vrTxt = vr == null ? null : Math.abs(vr) < 150 ? "Level" : `${vr > 0 ? "▲" : "▼"} ${fmtInt(Math.abs(vr))}`;
+  const trk = r.track != null ? Math.round(r.track) : null;
+  const compass = `<svg class="compass" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="rgba(164,183,204,.35)"/>
+    <text x="20" y="9" text-anchor="middle" font-size="7" font-family="IBM Plex Mono" fill="#7489A3">N</text>
+    <g style="transform:rotate(${trk || 0}deg);transform-origin:20px 20px;transition:transform .8s"><path d="M20 6 L24 22 L20 19 L16 22 Z" fill="#FFB23F"/><path d="M20 34 L20 23" stroke="rgba(164,183,204,.6)" stroke-width="1.5"/></g></svg>`;
+  const tail = r.tas ? r.gs - r.tas : null;
+  const cells = [];   // [html, optional?]
+  cells.push(cell("Altitude", `${fmtInt(r.alt)}<small>ft</small>`));
+  cells.push(cell("Vertical", vrTxt, vr != null && Math.abs(vr) >= 150 ? "<small>fpm</small>" : ""));
+  cells.push(`<div class="cell"><div class="k">Track</div><div class="cell-flex">${compass}<div class="v num">${trk != null ? String(trk).padStart(3, "0") + "°" : "--"}<small>${trk != null ? cardinal(trk) : ""}</small></div></div></div>`);
+  cells.push(cell("Mach 1 here", fmtSpeed(sound), `<small>${u}${typeof r.oat === "number" ? "" : " est."}</small>`));
+  if (r.tas) cells.push(cell("Airspeed (TAS)", fmtSpeed(r.tas), `<small>${u}</small>`));
+  if (r.mach) cells.push(cell("Mach", r.mach.toFixed(3)));
+  if (tail != null) cells.push(cell("Tailwind", `${tail >= 0 ? "+" : "−"}${fmtSpeed(Math.abs(tail))}`, `<small>${u}</small>`));
+  if (r.ws != null && r.wd != null) cells.push(cell("Wind aloft", `${String(Math.round(r.wd)).padStart(3, "0")}° / ${fmtSpeed(r.ws)}`, `<small>${u}</small>`));
+  if (typeof r.oat === "number") cells.push(cell("Outside air", `${r.oat > 0 ? "" : "−"}${Math.abs(Math.round(r.oat))}`, "<small>°C</small>"));
+  if (r.squawk) cells.push(cell("Squawk", esc(r.squawk)));
+  if (cells.length % 2) cells[cells.length - 1] = cells[cells.length - 1].replace('class="cell ', 'class="cell wide ').replace('<div class="cell">', '<div class="cell wide">');
+  cells.push(cell("Position", `${fmtLat(r.lat)} ${fmtLon(r.lon)}`, "", "wide"));
+  $("grid").innerHTML = cells.join("");
+}
+function renderSpark() {
+  const svg = $("spark");
+  const h = (champ?.history || []).filter((p, i, a) => i === 0 || p.t > a[i - 1].t);
+  if (h.length < 2) { svg.innerHTML = `<line x1="0" y1="28" x2="300" y2="28" stroke="rgba(164,183,204,.25)" stroke-dasharray="3 4"/>`; $("sparkNote").textContent = "building trace"; return; }
+  const t0 = h[0].t, t1 = h[h.length - 1].t || t0 + 1;
+  let mn = Math.min(...h.map(p => p.gs)), mx = Math.max(...h.map(p => p.gs));
+  if (mx - mn < 10) { mn -= 5; mx += 5; }
+  const X = t => ((t - t0) / Math.max(1, t1 - t0)) * 296 + 2, Y = g => 50 - ((g - mn) / (mx - mn)) * 42;
+  const pts = h.map(p => `${X(p.t).toFixed(1)},${Y(p.gs).toFixed(1)}`);
+  const last = h[h.length - 1];
+  svg.innerHTML = `<defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FFB23F" stop-opacity=".35"/><stop offset="1" stop-color="#FFB23F" stop-opacity="0"/></linearGradient></defs>
+    <line x1="0" y1="${Y(mx).toFixed(1)}" x2="300" y2="${Y(mx).toFixed(1)}" stroke="rgba(164,183,204,.15)"/>
+    <line x1="0" y1="${Y(mn).toFixed(1)}" x2="300" y2="${Y(mn).toFixed(1)}" stroke="rgba(164,183,204,.15)"/>
+    <polygon points="2,56 ${pts.join(" ")} ${X(last.t).toFixed(1)},56" fill="url(#sg)"/>
+    <polyline points="${pts.join(" ")}" fill="none" stroke="#FFB23F" stroke-width="1.8" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.gs).toFixed(1)}" r="3" fill="#FFB23F"/>`;
+  $("sparkNote").textContent = `peak ${fmtSpeed(champ.max)} · low ${fmtSpeed(Math.min(...h.map(p => p.gs)))} ${UNITS[unit].label}`;
+}
+function renderPhoto(p, ac) {
+  const fig = $("photo"), img = $("photoImg");
+  const src = p?.thumbnail_large?.src || p?.thumbnail?.src || ac?.url_photo || null;
+  if (!src) { fig.hidden = true; return; }
+  if (img.dataset.src !== src) { img.src = src; img.dataset.src = src; }
+  img.alt = `Photo of ${champ ? (pool.get(champ.hex)?.reg || "the aircraft") : "the aircraft"}`;
+  $("photoCap").innerHTML = p ? `Photo © ${esc(p.photographer || "unknown")} · <a href="${esc(p.link)}" target="_blank" rel="noopener">Planespotters.net</a>` : `Photo via adsbdb`;
+  fig.hidden = false;
+}
+function renderBoard(ranked, leader) {
+  const rows = [leader, ...ranked.filter(r => r.hex !== leader.hex)].slice(0, 7);
+  const pending = [...suspects.values()].filter(r => Date.now() - r.t < 60000 && r.gs > leader.gs).slice(0, 2);
+  $("board").innerHTML = rows.map((r, i) => {
+    const gap = i === 0 ? "leader" : `−${fmtSpeed(leader.gs - r.gs)}`;
+    const sub = [r.type, r.reg, r.op || r.country].filter(Boolean).join(" · ") || "Details unavailable";
+    return `<button class="row ${i === 0 ? "lead" : ""}" data-hex="${r.hex}"><span class="rk">${i + 1}</span>
+      <span class="who"><b>${esc(r.flight || r.hex.toUpperCase())}</b><span>${esc(sub)}</span></span>
+      <span class="sp"><b>${fmtSpeed(r.gs)}</b><span>${gap}</span></span></button>`;
+  }).join("") + pending.map(r => `<div class="row" style="opacity:.6"><span class="rk">?</span><span class="who"><b>${esc(r.flight || r.hex.toUpperCase())}<i class="tagv">verifying</i></b><span>Single report, waiting for a second one</span></span><span class="sp"><b>${fmtSpeed(r.gs)}</b><span>unconfirmed</span></span></div>`).join("");
+}
+function renderChecks() {
+  const u = UNITS[unit].label;
+  $("checkLog").innerHTML = checks.slice(0, 6).map(c => {
+    let color = "var(--hold)", msg = "", x = "";
+    if (c.verdict === "held") { msg = `<b>Still fastest</b>${c.next ? ` vs ${esc(c.next.flight || c.next.hex.toUpperCase())}` : ""}`; x = c.margin != null ? `+${fmtSpeed(c.margin)} ${u}` : ""; }
+    else if (c.verdict === "first") { color = "var(--burn)"; msg = `<b>First leader found</b>`; x = c.leader ? `${fmtSpeed(c.leader.gs)} ${u}` : ""; }
+    else if (c.verdict === "overtaken") { color = "var(--burn)"; msg = `<b>${esc(c.by.flight || c.by.hex.toUpperCase())}</b> took the lead`; x = `${fmtSpeed(c.by.gs)} ${u}`; }
+    else if (c.verdict === "lost") { color = "var(--alert)"; msg = `Leader dropped off coverage`; x = c.by ? esc(c.by.flight || "") : ""; }
+    else if (c.verdict === "nodata") { color = "var(--alert)"; msg = `Feeds didn't answer, keeping last leader`; }
+    else { color = "var(--muted)"; msg = "No eligible aircraft yet"; }
+    return `<div class="log-row"><time>${hhmmss(c.t)}</time><span class="m"><span class="d" style="background:${color}"></span>${msg}</span><span class="x num">${x}</span></div>`;
+  }).join("");
+  $("checkNote").textContent = `${checkNo} run`;
+}
+function renderReigns() {
+  const u = UNITS[unit].label;
+  $("reignLog").innerHTML = reigns.slice(0, 8).map((g, i) => `<div class="log-row"><time>${hhmm(g.start)}</time>
+    <span class="m"><span class="d" style="background:${i === 0 ? "var(--burn)" : "var(--line-strong)"}"></span><b>${esc(g.flight || g.hex.toUpperCase())}</b> ${esc(g.type || "")}</span>
+    <span class="x num">${i === 0 && champ ? fmtSpeed(champ.max) : fmtSpeed(g.max)} ${u} · ${dur((g.end || Date.now()) - g.start)}</span></div>`).join("");
+}
+function renderSources() {
+  const now = Date.now();
+  const all = SOURCES.map((s, i) => ({ name: s.name, st: srcState[i] })).concat([{ name: "OpenSky", st: osState }]);
+  $("srcs").innerHTML = all.map(({ name, st }) => {
+    const cls = st.last && now - st.last < 120000 ? "ok" : st.fails ? "bad" : "";
+    return `<span class="src ${cls}">${name}${cls === "ok" ? " · live" : st.fails ? " · resting" : ""}</span>`;
+  }).join("");
+  const live = all.find(a => a.st.last && now - a.st.last < 30000);
+  $("brandSub").textContent = live ? `Live via ${live.name}` : "Live ADS-B · ground speed";
+}
+function tickClock() {
+  if (!champ) return;
+  const r = pool.get(champ.hex) || champ.snap;
+  $("ageNote").textContent = `report ${dur(Date.now() - r.t)} old · ${r.src}`;
+  const last = checks[0];
+  if (last && (last.verdict === "held" || last.verdict === "first")) $("statusText").textContent = statusText(last);
+}
+
+/* ================= toast ================= */
+let toastTimer = null;
+function showToast(verdict, d) {
+  const t = $("toast");
+  const u = UNITS[unit].label;
+  const by = d.by;
+  if (verdict === "overtaken") {
+    const delta = d.prev ? by.gs - (d.prev.gs || 0) : 0;
+    t.className = "toast";
+    t.innerHTML = `<b>${esc(by.flight || by.hex.toUpperCase())}</b><span>takes the lead at ${fmtSpeed(by.gs)} ${u}${delta > 0 ? ` (+${fmtSpeed(delta)})` : ""}</span>`;
+  } else {
+    t.className = "toast lost";
+    t.innerHTML = `<b>${esc(by.flight || by.hex.toUpperCase())}</b><span>leads after the previous leader left coverage</span>`;
+  }
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 4500);
+  if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) try { navigator.vibrate(40); } catch (e) {}
+}
+
+/* ================= countdown ring & loop ================= */
+function ringLoop() {
+  const C = 94.25;
+  if (nextCheckAt && !checking) {
+    const left = Math.max(0, nextCheckAt - Date.now());
+    $("ringProg").style.strokeDashoffset = (C * (left / CHECK_MS)).toFixed(2);
+    $("checkLabel").textContent = "Next check"; $("checkVal").textContent = Math.ceil(left / 1000) + "s";
+  } else if (checking) $("ringProg").style.strokeDashoffset = "0";
+  requestAnimationFrame(ringLoop);
+}
+function startLoop() {
+  clearInterval(loopTimer);
+  nextCheckAt = Date.now() + CHECK_MS;
+  loopTimer = setInterval(() => { nextCheckAt = Date.now() + CHECK_MS; runCheck(); }, CHECK_MS);
+}
+document.addEventListener("visibilitychange", () => {
+  if (!booted) return;
+  if (document.hidden) { clearInterval(loopTimer); nextCheckAt = 0; }
+  else { runCheck(); startLoop(); }
+});
+setInterval(() => { tickClock(); renderSources(); }, 1000);
+
+/* ================= boot ================= */
+async function boot() {
+  const bootEl = $("boot");
+  bootEl.classList.remove("gone"); $("retryBtn").hidden = true;
+  $("bootMsg").textContent = "Sweeping the world's busiest airspace for the fastest aircraft.";
+  $("bootMsg").classList.remove("err");
+  const order = REGIONS.map((_, i) => i);
+  let done = 0, failed = 0;
+  const update = () => {
+    $("bootBar").style.width = (done / REGIONS.length * 100).toFixed(0) + "%";
+    $("bootMeta").textContent = `${done} of ${REGIONS.length} regions · ${fmtInt(pool.size)} aircraft`;
+    const top = freshRanking()[0];
+    $("bootLeader").textContent = top ? `Fastest so far: ${top.flight || top.hex.toUpperCase()} at ${fmtSpeed(top.gs)} ${UNITS[unit].label}` : "";
+  };
+  update();
+  openSkySweep();
+  const milP = scanMil().catch(() => {});
+  const worker = async () => {
+    while (order.length) {
+      const i = order.shift();
+      try { await scanRegion(i); } catch (e) { failed++; }
+      done++; update();
+      await sleep(150);
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  await milP;
+  if (failed === REGIONS.length || pool.size === 0) {
+    $("bootMsg").innerHTML = `<span class="err">The live flight feeds didn't answer.</span> If this page is open inside a preview or an in-app viewer, open it directly in Safari or Chrome. Otherwise the feeds may be busy; try again in a minute.`;
+    $("retryBtn").hidden = false;
+    return;
+  }
+  checkNo = 1;
+  evaluate(false);
+  booted = true;
+  bootEl.classList.add("gone");
+  const r = champ && (pool.get(champ.hex) || champ.snap);
+  if (r) map.flyTo([r.lat, r.lon], 5, { duration: 2 });
+  startLoop();
+}
+
+/* ================= UI wiring ================= */
+const sheet = $("sheet");
+function openSheet(open) {
+  sheet.classList.toggle("open", open);
+  $("grab").setAttribute("aria-expanded", String(open));
+  if (!open) $("sheetBody").scrollTop = 0;
+}
+$("grab").addEventListener("click", () => openSheet(!sheet.classList.contains("open")));
+let touchY = null;
+sheet.addEventListener("touchstart", e => { if ($("sheetBody").scrollTop <= 0) touchY = e.touches[0].clientY; }, { passive: true });
+sheet.addEventListener("touchend", e => {
+  if (touchY == null) return;
+  const dy = e.changedTouches[0].clientY - touchY; touchY = null;
+  if (dy < -40) openSheet(true); else if (dy > 60 && $("sheetBody").scrollTop <= 0) openSheet(false);
+}, { passive: true });
+$("unitBtn").addEventListener("click", () => {
+  unit = unit === "kt" ? "mph" : unit === "mph" ? "kmh" : "kt";
+  try { localStorage.setItem("fa-unit", unit); } catch (e) {}
+  speedShown = null; renderAll();
+});
+$("followBtn").addEventListener("click", () => {
+  follow = !follow; $("followBtn").setAttribute("aria-pressed", String(follow));
+  if (follow && champ) { const r = pool.get(champ.hex) || champ.snap; map.flyTo([r.lat, r.lon], Math.max(map.getZoom(), 5), { duration: 1.2 }); }
+});
+map.on("dragstart", () => { if (follow) { follow = false; $("followBtn").setAttribute("aria-pressed", "false"); } });
+$("covBtn").addEventListener("click", () => {
+  showCov = !showCov; $("covBtn").setAttribute("aria-pressed", String(showCov));
+  showCov ? covLayer.addTo(map) : map.removeLayer(covLayer);
+});
+$("worldBtn").addEventListener("click", () => {
+  follow = false; $("followBtn").setAttribute("aria-pressed", "false");
+  map.flyTo([35, -30], 2, { duration: 1.4 });
+});
+$("board").addEventListener("click", e => {
+  const b = e.target.closest(".row[data-hex]"); if (!b) return;
+  const r = pool.get(b.dataset.hex); if (!r) return;
+  follow = false; $("followBtn").setAttribute("aria-pressed", "false");
+  if (window.innerWidth < 900) openSheet(false);
+  map.flyTo([r.lat, r.lon], 6, { duration: 1.2 });
+});
+$("retryBtn").addEventListener("click", boot);
+window.addEventListener("resize", sizeTape);
+
+sizeTape(); animateTape(); ringLoop();
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(sizeTape);
+boot();
+
+// test hook for local previews
+window.__fa = { pool, evaluate, renderAll, get champ() { return champ; } };
+})();
+</script>
+</body>
+</html>
