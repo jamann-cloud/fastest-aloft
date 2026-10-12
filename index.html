@@ -399,7 +399,7 @@ const CONFIRM_ABOVE = 680;       // kt; faster readings need a second consistent
 const MAX_PLAUSIBLE = 1100;      // kt; anything faster is a data glitch
 const FIELD_MIN = 470;           // kt; relay drops slower aircraft from sweeps
 const FIELD_SHOW = 500;          // kt; slowest aircraft drawn in the fast field
-const SPACING_MIN = 1100;        // ms between feed requests (the free feeds allow about one a second)
+const SPACING_MIN = 1400;        // ms between feed requests (the free feeds rate-limit anything faster)
 
 // Worldwide sweep, fastest families first. Each is one request for every aircraft of that
 // type the receivers can see, trimmed by the relay to the fast ones.
@@ -1045,7 +1045,8 @@ function statusText(c) {
 function insight(r, ranked, sound) {
   const u = UNITS[unit].label;
   const next = ranked.find(x => x.hex !== r.hex);
-  const lead = next ? `<strong>${fmtSpeed(r.gs - next.gs)} ${u}</strong> ahead of ${esc(label(next))}.` : "";
+  const gap = next ? r.gs - next.gs : 0;
+  const lead = !next ? "" : conv(gap) < 1 ? `Neck and neck with ${esc(label(next))}.` : `<strong>${fmtSpeed(gap)} ${u}</strong> ahead of ${esc(label(next))}.`;
   if (r.mil) return `Military aircraft, broadcasting openly. Most military jets switch off public position reports, so only some appear here. ${lead}`;
   if (r.tas && r.gs - r.tas > 40) {
     return `The jet stream is doing a lot of the work: <strong>${fmtSpeed(r.gs - r.tas)} ${u}</strong> of this speed is tailwind. ${lead}`;
