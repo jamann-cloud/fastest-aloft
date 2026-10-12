@@ -17,7 +17,7 @@ jobs:
             "https://opensky-network.org/api/states/all?lamin=40&lomin=-75&lamax=41&lomax=-73" \
             "https://api.adsbdb.com/v0/callsign/BAW238" \
             "https://api.planespotters.net/pub/photos/hex/406a93" ; do
-            echo "=================== $u"
-            curl -sS -m 20 -D - -o body.txt -H "Origin: $O" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" "$u" | grep -iE "^HTTP|access-control|content-type|retry|server" || echo "request failed"
-            echo "--- body:"; head -c 200 body.txt; echo
+            H=$(curl -sS -m 20 -D - -o body.txt -H "Origin: $O" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" "$u" 2>&1 | grep -iE "^HTTP|access-control-allow-origin|curl:" | tr -d '\r' | tr '\n' ' ')
+            B=$(head -c 120 body.txt 2>/dev/null | tr -d '\r\n')
+            echo "::notice::$u => $H || $B"
           done
