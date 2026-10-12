@@ -19,7 +19,7 @@ const WAIT = Number(process.env.WAIT_MS || 32000);
     p.on("requestfailed", q => r.failed.push(`${q.failure()?.errorText} ${q.url().slice(0, 140)}`));
     p.on("response", s => {
       const u = s.url();
-      if (/basemaps|arcgis|tile\./.test(u)) s.ok() ? r.tilesOk++ : r.tilesBad++;
+      if (/basemaps|arcgisonline|tile\.openstreetmap/.test(u)) s.ok() ? r.tilesOk++ : r.tilesBad++;
       if (s.status() >= 400) r.failed.push(`${s.status()} ${u.slice(0, 140)}`);
     });
     p.on("pageerror", e => r.errors.push(String(e).slice(0, 300)));
@@ -41,6 +41,9 @@ const WAIT = Number(process.env.WAIT_MS || 32000);
         speed: document.getElementById("speed")?.innerText,
         callsign: document.getElementById("callsign")?.innerText,
         checks: document.getElementById("checkLog")?.innerText.slice(0, 300),
+        field: document.getElementById("legendCount")?.innerText,
+        sources: document.getElementById("srcs")?.innerText,
+        board: document.getElementById("board")?.innerText.slice(0, 300),
       };
     });
     r.failed = r.failed.slice(0, 20); r.errors = r.errors.slice(0, 15);
