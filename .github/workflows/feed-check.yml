@@ -1,0 +1,23 @@
+name: feed-check
+on:
+  push:
+    paths: [".github/workflows/feed-check.yml"]
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe feeds for browser (CORS) access
+        run: |
+          O="https://jamann-cloud.github.io"
+          for u in \
+            "https://api.adsb.lol/v2/point/40.6/-73.8/50" \
+            "https://opendata.adsb.fi/api/v2/lat/40.6/lon/-73.8/dist/50" \
+            "https://api.airplanes.live/v2/point/40.6/-73.8/50" \
+            "https://opensky-network.org/api/states/all?lamin=40&lomin=-75&lamax=41&lomax=-73" \
+            "https://api.adsbdb.com/v0/callsign/BAW238" \
+            "https://api.planespotters.net/pub/photos/hex/406a93" ; do
+            echo "=================== $u"
+            curl -sS -m 20 -D - -o body.txt -H "Origin: $O" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" "$u" | grep -iE "^HTTP|access-control|content-type|retry|server" || echo "request failed"
+            echo "--- body:"; head -c 200 body.txt; echo
+          done
