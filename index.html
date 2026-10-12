@@ -335,7 +335,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     </div>
 
     <div class="foot">
-      Speeds are <b>ground speed</b> from aircraft ADS-B broadcasts, picked up by volunteer receivers and shared through free public feeds. The app scans busy airspace on rotation and re-checks the leader and its closest challengers every 10 seconds. Aircraft over open ocean, outside receiver range, or flying without a public transponder signal (most military jets) can't be seen, so "fastest" means fastest among aircraft that are visible right now. Readings above 680 kt need a second matching report before they count, which filters out data glitches.
+      Speeds are <b>ground speed</b> from aircraft ADS-B broadcasts, picked up by volunteer receivers and shared through the free adsb.lol and adsb.fi feeds. The app scans busy airspace on rotation and re-checks the leader and its closest challengers every 10 seconds. Aircraft over open ocean, outside receiver range, or flying without a public transponder signal (most military jets) can't be seen, so "fastest" means fastest among aircraft that are visible right now. Readings above 680 kt need a second matching report before they count, which filters out data glitches.
       <div class="srcs" id="srcs"></div>
     </div>
   </div>
@@ -391,20 +391,28 @@ const REGIONS = [
   ["Sydney / Melbourne", -35.0, 149.0], ["São Paulo", -23.2, -46.5], ["Johannesburg", -26.0, 28.0]
 ];
 
-// Three interchangeable community feeds that share the readsb JSON format. First healthy one wins.
+// The feeds don't allow direct requests from web pages, so the app reads them through
+// a small Cloudflare relay (relay/worker.js). Set DEFAULT_RELAY once it's deployed;
+// adding ?relay=https://… to the page address also works and is remembered.
+const DEFAULT_RELAY = "";
+let RELAY = DEFAULT_RELAY;
+try {
+  const q = new URLSearchParams(location.search).get("relay");
+  if (q) localStorage.setItem("fa-relay", q);
+  RELAY = (q || localStorage.getItem("fa-relay") || DEFAULT_RELAY);
+} catch (e) {}
+RELAY = (RELAY || "").replace(/\/+$/, "");
+
+// Two community feeds that share the readsb JSON format. First healthy one wins.
 const SOURCES = [
   { name: "adsb.lol",
-    point: (la, lo, r) => `https://api.adsb.lol/v2/point/${la}/${lo}/${r}`,
-    hex: h => `https://api.adsb.lol/v2/hex/${h}`,
-    mil: () => `https://api.adsb.lol/v2/mil` },
+    point: (la, lo, r) => `${RELAY}/lol/v2/point/${la}/${lo}/${r}`,
+    hex: h => `${RELAY}/lol/v2/hex/${h}`,
+    mil: () => `${RELAY}/lol/v2/mil` },
   { name: "adsb.fi",
-    point: (la, lo, r) => `https://opendata.adsb.fi/api/v2/lat/${la}/lon/${lo}/dist/${r}`,
-    hex: h => `https://opendata.adsb.fi/api/v2/hex/${h}`,
-    mil: () => `https://opendata.adsb.fi/api/v2/mil` },
-  { name: "airplanes.live",
-    point: (la, lo, r) => `https://api.airplanes.live/v2/point/${la}/${lo}/${r}`,
-    hex: h => `https://api.airplanes.live/v2/hex/${h}`,
-    mil: () => `https://api.airplanes.live/v2/mil` }
+    point: (la, lo, r) => `${RELAY}/fi/api/v2/lat/${la}/lon/${lo}/dist/${r}`,
+    hex: h => `${RELAY}/fi/api/v2/hex/${h}`,
+    mil: () => `${RELAY}/fi/api/v2/mil` }
 ];
 const srcState = SOURCES.map(() => ({ ok: 0, fails: 0, coolUntil: 0, last: null }));
 const osState = { name: "OpenSky", ok: 0, fails: 0, nextAt: 0, last: null };
@@ -587,7 +595,7 @@ async function openSkySweep() {
   if (Date.now() < osState.nextAt) return;
   osState.nextAt = Date.now() + OPENSKY_EVERY;
   try {
-    const j = await getJSON("https://opensky-network.org/api/states/all", 20000);
+    const j = await getJSON(`${RELAY}/osky/api/states/all`, 20000);
     const at = Date.now(); let n = 0;
     for (const s of j.states || []) { const r = normOpenSky(s, at); if (r) { upsert(r); n++; } }
     osState.ok++; osState.last = at;
@@ -1086,6 +1094,10 @@ async function boot() {
   bootEl.classList.remove("gone"); $("retryBtn").hidden = true;
   $("bootMsg").textContent = "Sweeping the world's busiest airspace for the fastest aircraft.";
   $("bootMsg").classList.remove("err");
+  if (!RELAY) {
+    $("bootMsg").innerHTML = `<span class="err">The data relay isn't connected yet.</span> Finish the Cloudflare relay setup, then reload this page.`;
+    return;
+  }
   const order = REGIONS.map((_, i) => i);
   let done = 0, failed = 0;
   const update = () => {
@@ -1108,7 +1120,7 @@ async function boot() {
   await Promise.all([worker(), worker(), worker()]);
   await milP;
   if (failed === REGIONS.length || pool.size === 0) {
-    $("bootMsg").innerHTML = `<span class="err">The live flight feeds didn't answer.</span> If this page is open inside a preview or an in-app viewer, open it directly in Safari or Chrome. Otherwise the feeds may be busy; try again in a minute.`;
+    $("bootMsg").innerHTML = `<span class="err">The live flight feeds didn't answer.</span> The relay or the feeds may be busy. Try again in a minute.`;
     $("retryBtn").hidden = false;
     return;
   }
