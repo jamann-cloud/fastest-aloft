@@ -1,42 +1,71 @@
-// Vercel Edge Function: reads the public flight feeds server-side so the page can use them.
-// /api/<feed>/<path> is rewritten here (see vercel.json). Only the paths the app uses are allowed.
-export const config = { runtime: "edge" };
+// Fastest Aloft relay (Vercel Node function).
+// The public flight feeds don't send CORS headers, so the page reads them through here.
+// /api/<feed>/<path> is rewritten to /api/relay?path=<feed>/<path> by vercel.json.
+// ?min=<kt> trims the response to aircraft at least that fast, which keeps worldwide
+// per-type lookups small enough for a phone.
 
 const UPSTREAM = {
   lol: "https://api.adsb.lol",
   fi: "https://opendata.adsb.fi",
-  osky: "https://opensky-network.org",
+  ps: "https://api.planespotters.net",
 };
-const ALLOWED = [
-  /^lol\/v2\/(point\/-?\d+(\.\d+)?\/-?\d+(\.\d+)?\/\d{1,3}|hex\/[0-9a-f]{6}|mil)$/i,
-  /^fi\/api\/v2\/(lat\/-?\d+(\.\d+)?\/lon\/-?\d+(\.\d+)?\/dist\/\d{1,3}|hex\/[0-9a-f]{6}|mil)$/i,
-  /^osky\/api\/states\/all$/,
+const NUM = "-?\\d+(?:\\.\\d+)?";
+const ROUTES = [
+  { key: "lol", re: new RegExp(`^lol/v2/(point/${NUM}/${NUM}/\\d{1,3}|hex/[0-9a-f]{6}|mil|type/[A-Z0-9]{2,4})$`, "i") },
+  { key: "fi", re: new RegExp(`^fi/api/v2/(lat/${NUM}/lon/${NUM}/dist/\\d{1,3}|hex/[0-9a-f]{6}|mil)$`, "i") },
+  { key: "ps", re: /^ps\/pub\/photos\/hex\/[0-9a-f]{6}$/i },
 ];
 const EXTRA_ORIGINS = ["https://jamann-cloud.github.io", "null"];
+const KEEP = ["hex", "type", "flight", "r", "t", "desc", "ownOp", "year", "dbFlags", "lat", "lon", "alt_baro", "alt_geom",
+  "gs", "tas", "ias", "mach", "track", "true_heading", "baro_rate", "geom_rate", "squawk", "ws", "wd", "oat", "category", "seen", "seen_pos"];
+const UA = "FastestAloft/1.0 (+https://github.com/jamann-cloud/fastest-aloft)";
 
-export default async function handler(request) {
-  const url = new URL(request.url);
-  const origin = request.headers.get("Origin");
-  const allowed = !origin || origin === url.origin || EXTRA_ORIGINS.includes(origin);
-  const cors = { "Access-Control-Allow-Origin": origin && allowed ? origin : url.origin, "Vary": "Origin" };
-  if (!allowed) return new Response("Forbidden", { status: 403, headers: cors });
-  if (request.method === "OPTIONS") return new Response(null, { headers: { ...cors, "Access-Control-Allow-Methods": "GET, OPTIONS" } });
+module.exports = async (req, res) => {
+  const origin = req.headers.origin;
+  const self = `https://${req.headers.host}`;
+  const allowed = !origin || origin === self || EXTRA_ORIGINS.includes(origin);
+  res.setHeader("Vary", "Origin");
+  if (origin && allowed) res.setHeader("Access-Control-Allow-Origin", origin);
+  if (!allowed) return res.status(403).send("Forbidden");
+  if (req.method === "OPTIONS") { res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS"); return res.status(204).end(); }
 
-  const path = (url.searchParams.get("path") || "").replace(/^\/+/, "");
-  if (!path) return new Response("Fastest Aloft relay is running", { headers: cors });
-  if (request.method !== "GET" || !ALLOWED.some(r => r.test(path))) return new Response("Not found", { status: 404, headers: cors });
+  const path = String(req.query.path || "").replace(/^\/+/, "");
+  if (!path) return res.status(200).send("Fastest Aloft relay is running");
+  const route = req.method === "GET" && ROUTES.find(r => r.re.test(path));
+  if (!route) return res.status(404).send("Not found");
+  const target = `${UPSTREAM[route.key]}/${path.slice(route.key.length + 1)}`;
 
-  const [key, ...rest] = path.split("/");
+  let up;
   try {
-    const up = await fetch(`${UPSTREAM[key]}/${rest.join("/")}`, {
-      headers: { "User-Agent": "FastestAloft/1.0 (+https://github.com/jamann-cloud/fastest-aloft)", "Accept": "application/json" },
-    });
-    const ttl = key === "osky" ? 60 : 4;   // share identical requests briefly to stay gentle on the free feeds
-    return new Response(up.body, {
-      status: up.status,
-      headers: { ...cors, "Content-Type": up.headers.get("Content-Type") || "application/json", "Cache-Control": `public, s-maxage=${ttl}, max-age=0` },
-    });
+    up = await fetch(target, { headers: { "User-Agent": UA, Accept: "application/json" }, signal: AbortSignal.timeout(9000) });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "Upstream feed unreachable" }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(502).json({ error: "Feed unreachable" });
   }
-}
+  if (!up.ok) {
+    res.setHeader("Cache-Control", "no-store");
+    if (up.headers.get("retry-after")) res.setHeader("Retry-After", up.headers.get("retry-after"));
+    return res.status(up.status).json({ error: `Feed answered ${up.status}` });
+  }
+
+  if (route.key === "ps") {
+    res.setHeader("Cache-Control", "public, s-maxage=86400");
+    return res.status(200).json(await up.json());
+  }
+
+  let data;
+  try { data = await up.json(); } catch (e) { return res.status(502).json({ error: "Feed sent unreadable data" }); }
+  const list = data.ac || data.aircraft || [];
+  const min = Number(req.query.min) || 0;
+  const ac = [];
+  for (const a of list) {
+    if (min && (typeof a.gs !== "number" || a.gs < min || a.alt_baro === "ground")) continue;
+    const o = {};
+    for (const k of KEEP) if (a[k] !== undefined) o[k] = a[k];
+    ac.push(o);
+  }
+  // share identical requests briefly so several viewers don't multiply the load on the free feeds
+  const ttl = /\/hex\//.test(path) ? 3 : 8;
+  res.setHeader("Cache-Control", `public, s-maxage=${ttl}, stale-while-revalidate=${ttl}`);
+  return res.status(200).json({ ac, total: list.length, now: Date.now() });
+};

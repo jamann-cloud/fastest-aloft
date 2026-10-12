@@ -52,15 +52,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* ---------- map ---------- */
 #map{position:fixed;inset:0;background:var(--ink);z-index:0}
 .leaflet-container{background:var(--ink);font-family:var(--body)}
-.leaflet-tile-pane{filter:brightness(.92) sepia(.35) hue-rotate(178deg) saturate(1.7) contrast(1.05)}
+.osm-dark{filter:invert(1) hue-rotate(195deg) brightness(.82) contrast(.92) saturate(.55)}
 .leaflet-control-attribution{background:rgba(10,20,36,.7)!important;color:var(--muted)!important;font-size:10px!important;border-radius:6px 0 0 0}
 .leaflet-control-attribution a{color:var(--steel)!important}
 .leaflet-top{top:calc(70px + var(--safe-t))}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel-solid);color:var(--fg);border:1px solid var(--line-strong);box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .leaflet-popup-content{margin:12px 14px;font:13px/1.4 var(--body)}
 .leaflet-popup-close-button{color:var(--muted)!important}
-.cov{transition:stroke-opacity 1.6s ease, stroke 1.6s ease}
-.cov.hit{stroke:var(--burn)!important;stroke-opacity:.75!important;transition:none}
 
 .champ-wrap{position:relative;width:64px;height:64px}
 .champ-wrap .halo{position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle,var(--burn-glow) 0%,rgba(255,178,63,0) 70%);animation:halo 2.4s ease-out infinite}
@@ -71,7 +69,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 @keyframes ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.6);opacity:0}}
 .rival{position:relative;width:26px;height:26px}
 .rival svg{width:26px;height:26px;transition:transform .8s ease}
-.rival span{position:absolute;left:24px;top:4px;font:500 10px/1 var(--mono);color:var(--steel);background:rgba(10,20,36,.78);padding:3px 4px;border-radius:3px;white-space:nowrap}
+.rival span{position:absolute;left:24px;top:4px;font:500 10px/1 var(--mono);color:var(--fg);background:rgba(10,20,36,.82);border:1px solid var(--line);padding:3px 5px;border-radius:4px;white-space:nowrap}
+.rival span b{color:var(--muted);font-weight:500;margin-right:2px}
 .ap-label{font:600 10px/1 var(--mono);color:var(--steel);background:rgba(10,20,36,.85);border:1px solid var(--line-strong);padding:3px 5px;border-radius:3px;white-space:nowrap;transform:translate(8px,-50%)}
 
 /* ---------- top bar ---------- */
@@ -101,6 +100,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .toast.show{opacity:1;transform:translateY(0)}
 .toast b{font:900 18px/1 var(--display);letter-spacing:.03em}
 .toast.lost{background:var(--steel)}
+.toast.note{background:rgba(14,26,45,.95);color:var(--fg);border:1px solid var(--line-strong);font-weight:500}
 
 /* ---------- sheet ---------- */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:25;height:min(84dvh,820px);background:var(--panel);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border-top:1px solid var(--line-strong);border-radius:22px 22px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.45);transform:translateY(calc(100% - var(--peek) - var(--safe-b)));transition:transform .45s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
@@ -128,6 +128,20 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .mach-chip{font:500 12px/1 var(--mono);color:var(--steel)}
 
 .tape-wrap{position:relative;margin-top:-6px}
+.budget{display:flex;flex-direction:column;gap:7px;margin-top:-8px}
+.bud-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
+.bud-bar i{display:block;height:100%}
+.bud-bar .air{background:var(--steel)}
+.bud-bar .jet{background:repeating-linear-gradient(135deg,var(--burn) 0 6px,var(--burn-deep) 6px 9px)}
+.bud-bar .head{background:repeating-linear-gradient(135deg,rgba(255,107,92,.55) 0 4px,transparent 4px 8px)}
+.bud-lab{display:flex;justify-content:space-between;gap:10px;font:500 11.5px/1.2 var(--mono);color:var(--steel)}
+.bud-lab .j{color:var(--burn)}
+.bud-lab .h{color:var(--alert)}
+.legend{position:fixed;left:16px;top:calc(96px + var(--safe-t));z-index:14;background:rgba(10,20,36,.82);border:1px solid var(--line);border-radius:10px;padding:7px 9px;display:flex;flex-direction:column;gap:5px;pointer-events:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.legend-scale{display:flex;gap:9px;font:500 10px/1 var(--mono);color:var(--steel)}
+.legend-scale span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.legend-scale i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.legend-count{font:500 9.5px/1 var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 #tape{display:block;width:100%;height:58px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
 
 .ident{display:flex;flex-direction:column;gap:6px}
@@ -178,6 +192,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row .who{min-width:0}
 .row .who b{font:600 14px/1.2 var(--body);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .who span{font:400 12px/1.2 var(--body);color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who .bar{display:block;height:2px;margin-top:6px;border-radius:2px;background:var(--line-strong)}
+.row.lead .who .bar{background:var(--burn)}
 .row .sp{text-align:right}
 .row .sp b{font:700 20px/1 var(--display);font-variant-numeric:tabular-nums;display:block}
 .row .sp span{font:500 10.5px/1.3 var(--mono);color:var(--muted)}
@@ -228,6 +244,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   .toast{left:calc(50% + 213px);right:auto;transform:translate(-50%,-12px)}
   .toast.show{transform:translate(-50%,0)}
   .leaflet-top.leaflet-left{left:430px}
+  .legend{left:442px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
@@ -262,8 +279,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <button class="mbtn" id="followBtn" aria-pressed="true" aria-label="Follow the fastest aircraft" title="Follow the leader">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg>
   </button>
-  <button class="mbtn" id="covBtn" aria-pressed="true" aria-label="Show scanned coverage areas" title="Coverage scan">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5"/><path d="M12 12 L19 5"/></svg>
+  <button class="mbtn" id="fieldBtn" aria-pressed="true" aria-label="Show all fast jets" title="Fast jets">
+    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="15" r="1.8"/><circle cx="9.5" cy="12.5" r="1.8"/><circle cx="14" cy="10.5" r="2.2"/><circle cx="19" cy="9" r="2.6"/><circle cx="7" cy="7" r="1.4" opacity=".5"/><circle cx="16" cy="17" r="1.4" opacity=".5"/></svg>
+  </button>
+  <button class="mbtn" id="styleBtn" aria-label="Change map style" title="Map style">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 L21.5 8 L12 13 L2.5 8 Z"/><path d="M2.5 12 L12 17 L21.5 12"/><path d="M2.5 16 L12 21 L21.5 16"/></svg>
   </button>
   <button class="mbtn" id="worldBtn" aria-label="Zoom out to the whole world" title="World view">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16 0 19M12 2.5c-3 3-3 16 0 19"/></svg>
@@ -271,6 +291,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="legend" id="legend"><div class="legend-scale" id="legendScale"></div><div class="legend-count num" id="legendCount">Fast jets</div></div>
 
 <section class="sheet" id="sheet" aria-label="Fastest aircraft details">
   <button class="grab" id="grab" aria-label="Expand details" aria-expanded="false"><i></i></button>
@@ -291,6 +313,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     </div>
 
     <div class="tape-wrap"><canvas id="tape" aria-hidden="true"></canvas></div>
+
+    <div class="budget" id="budget" hidden>
+      <div class="bud-bar" aria-hidden="true"><i class="air" id="budAir"></i><i class="jet" id="budJet"></i><i class="head" id="budHead"></i></div>
+      <div class="bud-lab num"><span id="budAirTxt"></span><span id="budJetTxt" class="j"></span></div>
+    </div>
 
     <div class="ident">
       <div class="ident-row"><span class="callsign" id="callsign">-----</span><span class="airline" id="airline"></span></div>
@@ -335,7 +362,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     </div>
 
     <div class="foot">
-      Speeds are <b>ground speed</b> from aircraft ADS-B broadcasts, picked up by volunteer receivers and shared through the free adsb.lol and adsb.fi feeds. The app scans busy airspace on rotation and re-checks the leader and its closest challengers every 10 seconds. Aircraft over open ocean, outside receiver range, or flying without a public transponder signal (most military jets) can't be seen, so "fastest" means fastest among aircraft that are visible right now. Readings above 680 kt need a second matching report before they count, which filters out data glitches.
+      Speeds are <b>ground speed</b> from aircraft ADS-B broadcasts, picked up by volunteer receivers and shared through the free adsb.lol and adsb.fi feeds. The app sweeps the world one aircraft family at a time (787s, 777s, A350s, business jets and so on), and re-checks the leader and its closest challengers every 10 seconds. Dots on the map are every jet doing 500 kt or more; the bright streams usually trace the jet stream. The shaded area is the night side of the Earth. Aircraft over open ocean, outside receiver range, or flying without a public transponder signal (most military jets) can't be seen, so "fastest" means fastest among aircraft that are visible right now. Readings above 680 kt need a second matching report before they count, which filters out data glitches.
       <div class="srcs" id="srcs"></div>
     </div>
   </div>
@@ -365,75 +392,94 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 "use strict";
 
 /* ================= configuration ================= */
-const CHECK_MS = 10000;          // champion check interval
-const STALE_MS = 150000;         // ignore readings older than this
+const CHECK_MS = 10000;          // leader check interval
+const STALE_MS = 180000;         // ignore readings older than this
 const CHAMP_STALE_MS = 45000;    // leader counts as lost after this long without a fresh report
 const CONFIRM_ABOVE = 680;       // kt; faster readings need a second consistent report
-const MAX_PLAUSIBLE = 1100;      // kt; anything faster is treated as a glitch
-const RADIUS_NM = 250;
-const OPENSKY_EVERY = 15 * 60000;
+const MAX_PLAUSIBLE = 1100;      // kt; anything faster is a data glitch
+const FIELD_MIN = 470;           // kt; relay drops slower aircraft from sweeps
+const FIELD_SHOW = 500;          // kt; slowest aircraft drawn in the fast field
+const SPACING_MIN = 1100;        // ms between feed requests (the free feeds allow about one a second)
 
-// 250 nm scan circles over the airspace with the densest receiver coverage, weighted to jet-stream corridors.
-const REGIONS = [
-  ["Gander / North Atlantic", 48.6, -56.0], ["Maritimes", 46.0, -64.5], ["New England", 43.0, -70.5],
-  ["New York / Philadelphia", 40.2, -75.0], ["Washington DC", 38.0, -78.0], ["Carolinas", 34.8, -80.0],
-  ["Florida", 28.2, -81.6], ["Great Lakes", 42.3, -84.0], ["Ontario / Quebec", 46.5, -76.0],
-  ["Chicago / Midwest", 41.0, -89.0], ["Tennessee Valley", 35.8, -87.0], ["Texas", 31.5, -97.0],
-  ["Central Plains", 38.5, -98.5], ["Colorado", 39.5, -105.0], ["Desert Southwest", 33.8, -112.5],
-  ["California", 36.8, -120.5], ["Pacific Northwest", 46.5, -121.5], ["Alberta", 51.0, -113.5],
-  ["Alaska", 61.0, -150.0], ["Hawaii", 21.0, -157.5], ["Mexico", 20.0, -99.0],
-  ["Iceland", 64.0, -21.0], ["Ireland", 53.2, -7.5], ["England", 52.2, -1.0],
-  ["France", 46.8, 2.5], ["Benelux / Germany", 51.0, 8.5], ["Central Europe", 48.5, 15.5],
-  ["Iberia", 40.2, -4.0], ["Italy", 42.5, 12.5], ["Scandinavia", 58.5, 13.0],
-  ["Poland / Baltics", 53.0, 21.5], ["Balkans / Istanbul", 41.8, 26.5], ["Gulf", 25.3, 53.5],
-  ["India North", 28.4, 77.0], ["Thailand", 13.7, 100.6], ["Singapore", 1.5, 104.0],
-  ["Hong Kong / Taiwan", 23.5, 117.5], ["Korea / West Japan", 35.2, 129.5], ["Tokyo", 35.6, 139.8],
-  ["Sydney / Melbourne", -35.0, 149.0], ["São Paulo", -23.2, -46.5], ["Johannesburg", -26.0, 28.0]
+// Worldwide sweep, fastest families first. Each is one request for every aircraft of that
+// type the receivers can see, trimmed by the relay to the fast ones.
+const SWEEP = [
+  ["type", "B789"], ["type", "B77W"], ["type", "B788"], ["type", "A359"], ["type", "B78X"], ["type", "A35K"],
+  ["type", "B772"], ["type", "B763"], ["type", "A333"], ["type", "B748"], ["type", "B744"], ["type", "A388"],
+  ["mil"],
+  ["type", "A332"], ["type", "A339"], ["type", "B77L"], ["type", "B764"], ["type", "B752"], ["type", "B753"],
+  ["type", "A21N"], ["type", "A321"], ["type", "B738"], ["type", "B38M"], ["type", "B739"], ["type", "B39M"],
+  ["type", "A20N"], ["type", "A320"], ["type", "A319"], ["type", "BCS3"], ["type", "BCS1"], ["type", "B737"],
+  ["type", "GLF6"], ["type", "GL7T"], ["type", "GLEX"], ["type", "GL5T"], ["type", "GLF5"], ["type", "C750"],
+  ["type", "FA7X"], ["type", "FA8X"], ["type", "CL35"], ["type", "C68A"], ["type", "E75L"], ["type", "E190"],
+  // jet-stream corridors, to catch aircraft whose type the feed doesn't know
+  ["point", 48.6, -56, 250], ["point", 41, -74, 250], ["point", 52.5, -2, 250], ["point", 35.6, 139.8, 250],
+  ["point", 39.5, -95, 250], ["point", 31, 121.5, 250]
 ];
+const BOOT_ITEMS = 6;
 
-// The feeds don't allow direct requests from web pages, so the app reads them through
-// a small Cloudflare relay (relay/worker.js). Set DEFAULT_RELAY once it's deployed;
-// adding ?relay=https://… to the page address also works and is remembered.
-// On Vercel the relay lives at /api on the same site (api/relay.js).
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const STYLES = {
+  dark: {
+    label: "Dark",
+    base: () => L.tileLayer(ESRI + "Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 12, attribution: "Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }),
+    labels: () => L.tileLayer(ESRI + "Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { pane: "labels", maxNativeZoom: 16, maxZoom: 12 }),
+    tint: ["#123064", .24]
+  },
+  satellite: {
+    label: "Satellite",
+    base: () => L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 17, maxZoom: 12, attribution: "Esri, Maxar, Earthstar Geographics" }),
+    labels: () => L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { pane: "labels", maxNativeZoom: 16, maxZoom: 12, opacity: .7 }),
+    tint: ["#020812", .32]
+  },
+  street: {
+    label: "Street",
+    base: () => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12, className: "osm-dark", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }),
+    labels: null,
+    tint: null
+  }
+};
+
+/* ================= relay ================= */
+// The feeds don't allow direct requests from web pages; the app reads them through api/relay.js.
 const DEFAULT_RELAY = /\.vercel\.app$/.test(location.hostname) ? `${location.origin}/api` : "";
 let RELAY = DEFAULT_RELAY;
 try {
   const q = new URLSearchParams(location.search).get("relay");
   if (q) localStorage.setItem("fa-relay", q);
-  RELAY = (q || localStorage.getItem("fa-relay") || DEFAULT_RELAY);
+  RELAY = q || (DEFAULT_RELAY ? DEFAULT_RELAY : localStorage.getItem("fa-relay")) || "";
 } catch (e) {}
 RELAY = (RELAY || "").replace(/\/+$/, "");
 
-// Two community feeds that share the readsb JSON format. First healthy one wins.
+// Two community feeds with the same JSON format. adsb.lol is the only one with type lookups.
 const SOURCES = [
   { name: "adsb.lol",
-    point: (la, lo, r) => `${RELAY}/lol/v2/point/${la}/${lo}/${r}`,
+    type: t => `${RELAY}/lol/v2/type/${t}?min=${FIELD_MIN}`,
+    point: (la, lo, r) => `${RELAY}/lol/v2/point/${la}/${lo}/${r}?min=${FIELD_MIN}`,
     hex: h => `${RELAY}/lol/v2/hex/${h}`,
-    mil: () => `${RELAY}/lol/v2/mil` },
+    mil: () => `${RELAY}/lol/v2/mil?min=${FIELD_MIN}` },
   { name: "adsb.fi",
-    point: (la, lo, r) => `${RELAY}/fi/api/v2/lat/${la}/lon/${lo}/dist/${r}`,
-    hex: h => `${RELAY}/fi/api/v2/hex/${h}`,
-    mil: () => `${RELAY}/fi/api/v2/mil` }
+    point: (la, lo, r) => `${RELAY}/fi/api/v2/lat/${la}/lon/${lo}/dist/${r}?min=${FIELD_MIN}`,
+    hex: h => `${RELAY}/fi/api/v2/hex/${h}` }
 ];
 const srcState = SOURCES.map(() => ({ ok: 0, fails: 0, coolUntil: 0, last: null }));
-const osState = { name: "OpenSky", ok: 0, fails: 0, nextAt: 0, last: null };
 
 const PLANE_PATH = "M32 3C34 3 35.5 6 35.5 10L35.5 24L58 37L58 42L35.5 35.5L35.5 49L42 54L42 58L32 55.5L22 58L22 54L28.5 49L28.5 35.5L6 42L6 37L28.5 24L28.5 10C28.5 6 30 3 32 3Z";
 
 /* ================= state ================= */
-const pool = new Map();            // hex -> latest normalized record
+const pool = new Map();            // hex -> latest confirmed record
 const recheck = new Set();         // hexes needing confirmation
 const suspects = new Map();        // hex -> fast reading awaiting a second matching report
-const regionHeat = REGIONS.map(() => 0);
-const regionLast = REGIONS.map(() => 0);
 const enrich = new Map();          // hex -> {aircraft, route, photo}
-let champ = null;                  // {hex, start, checks, max, history:[{t,gs}], trail:[[lat,lon]]}
-const reigns = [];                 // closed + current
+let champ = null;                  // {hex, start, checks, max, history, trail, snap}
+const reigns = [];
 const checks = [];
-let checkNo = 0, rrIdx = 0, nextCheckAt = 0, checking = false, loopTimer = null, booted = false;
-let unit = "kt";
-let follow = true, showCov = true;
-try { unit = localStorage.getItem("fa-unit") || "kt"; } catch (e) {}
+let checkNo = 0, sweepIdx = 0, nextCheckAt = 0, checking = false, loopTimer = null, booted = false;
+let lastOk = 0, sweepsDone = 0;
+let unit = "kt", style = "dark";
+let follow = true, showField = true;
+try { unit = localStorage.getItem("fa-unit") || "kt"; style = localStorage.getItem("fa-style") || "dark"; } catch (e) {}
+if (!STYLES[style]) style = "dark";
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -450,24 +496,25 @@ const fmtLon = v => `${Math.abs(v).toFixed(2)}°${v >= 0 ? "E" : "W"}`;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const hhmmss = t => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 const hhmm = t => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const label = r => r.flight || r.reg || r.hex.toUpperCase();
+const fl = alt => "FL" + String(Math.round(alt / 100)).padStart(3, "0");
 function dur(ms) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
   return h ? `${h}h ${m}m` : m ? `${m}m ${String(x).padStart(2, "0")}s` : `${x}s`;
 }
 function soundSpeedKt(r) {
-  let tC = typeof r.oat === "number" ? r.oat : Math.max(-56.5, 15 - 0.0019812 * (r.alt || 0));
+  const tC = typeof r.oat === "number" ? r.oat : Math.max(-56.5, 15 - 0.0019812 * (r.alt || 0));
   return 38.96785 * Math.sqrt(tC + 273.15);
 }
+const RAD = Math.PI / 180, DEG = 180 / Math.PI;
 function haversineNm(a, b) {
-  const R = 3440.065, toR = Math.PI / 180;
-  const dLat = (b[0] - a[0]) * toR, dLon = (b[1] - a[1]) * toR;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * toR) * Math.cos(b[0] * toR) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  const dLat = (b[0] - a[0]) * RAD, dLon = (b[1] - a[1]) * RAD;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * RAD) * Math.cos(b[0] * RAD) * Math.sin(dLon / 2) ** 2;
+  return 2 * 3440.065 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 function greatCircle(a, b, n = 64) {
-  const toR = Math.PI / 180, toD = 180 / Math.PI;
-  const [la1, lo1, la2, lo2] = [a[0] * toR, a[1] * toR, b[0] * toR, b[1] * toR];
+  const [la1, lo1, la2, lo2] = [a[0] * RAD, a[1] * RAD, b[0] * RAD, b[1] * RAD];
   const d = 2 * Math.asin(Math.sqrt(Math.sin((la2 - la1) / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin((lo2 - lo1) / 2) ** 2));
   if (!d) return [a, b];
   const pts = []; let prevLon = null;
@@ -476,43 +523,73 @@ function greatCircle(a, b, n = 64) {
     const x = A * Math.cos(la1) * Math.cos(lo1) + B * Math.cos(la2) * Math.cos(lo2);
     const y = A * Math.cos(la1) * Math.sin(lo1) + B * Math.cos(la2) * Math.sin(lo2);
     const z = A * Math.sin(la1) + B * Math.sin(la2);
-    let lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * toD, lon = Math.atan2(y, x) * toD;
+    let lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * DEG, lon = Math.atan2(y, x) * DEG;
     if (prevLon !== null) { while (lon - prevLon > 180) lon -= 360; while (lon - prevLon < -180) lon += 360; }
     prevLon = lon; pts.push([lat, lon]);
   }
   return pts;
 }
+// Dead reckoning: where the aircraft is now, from its last report, speed and track (max 90 s ahead).
+function predict(r, now = Date.now()) {
+  if (r.track == null) return [r.lat, r.lon];
+  const dt = Math.min(90, Math.max(0, (now - r.t) / 1000));
+  const d = r.gs * dt / 3600 / 3440.065, br = r.track * RAD, la = r.lat * RAD, lo = r.lon * RAD;
+  const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(br));
+  const lo2 = lo + Math.atan2(Math.sin(br) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
+  return [la2 * DEG, lo2 * DEG];
+}
 
-/* ================= networking ================= */
-async function getJSON(url, ms = 9000) {
+/* ================= request queue ================= */
+// One request at a time, about a second apart, leader checks first. Slows down on 429.
+const queue = [];
+let spacing = SPACING_MIN, lastSend = 0, pumping = false;
+function enqueue(kind, args, prio) {
+  return new Promise((resolve, reject) => { queue.push({ kind, args, prio, resolve, reject, at: Date.now() }); pump(); });
+}
+async function pump() {
+  if (pumping) return;
+  pumping = true;
+  while (queue.length) {
+    const wait = lastSend + spacing - Date.now();
+    if (wait > 0) await sleep(wait);
+    queue.sort((a, b) => b.prio - a.prio || a.at - b.at);
+    const job = queue.shift();
+    lastSend = Date.now();
+    try { job.resolve(await fetchFeed(job.kind, job.args)); } catch (e) { job.reject(e); }
+  }
+  pumping = false;
+}
+async function getJSON(url, ms = 10000) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), ms);
   try {
-    const res = await fetch(url, { signal: ctl.signal, cache: "no-store" });
+    const res = await fetch(url, { signal: ctl.signal });
     if (!res.ok) { const e = new Error("HTTP " + res.status); e.status = res.status; throw e; }
     return await res.json();
   } finally { clearTimeout(timer); }
 }
-async function adsb(kind, ...args) {
+async function fetchFeed(kind, args) {
   let lastErr = null;
   for (let i = 0; i < SOURCES.length; i++) {
     const st = srcState[i];
-    if (st.coolUntil > Date.now()) continue;
+    if (!SOURCES[i][kind] || st.coolUntil > Date.now()) continue;
     try {
       const j = await getJSON(SOURCES[i][kind](...args));
-      st.ok++; st.fails = 0; st.last = Date.now();
+      st.ok++; st.fails = 0; st.last = lastOk = Date.now();
+      spacing = Math.max(SPACING_MIN, spacing * 0.92);
       return { list: j.ac || j.aircraft || [], src: SOURCES[i].name, at: Date.now() };
     } catch (e) {
       lastErr = e; st.fails++;
-      st.coolUntil = Date.now() + Math.min(300000, (e.status === 429 ? 60000 : 15000) * st.fails);
+      if (e.status === 429) spacing = Math.min(5000, spacing * 1.6);
+      st.coolUntil = Date.now() + Math.min(120000, (e.status === 429 ? 20000 : 8000) * st.fails);
     }
   }
-  throw lastErr || new Error("All feeds are cooling down");
+  throw lastErr || new Error("Feeds resting");
 }
 
 /* ================= normalization ================= */
 const GOOD_TYPES = new Set(["adsb_icao", "adsb_icao_nt", "adsr_icao", "adsc", "adsb_other", "adsr_other", undefined]);
-function normAdsb(a, at, src) {
+function norm(a, at, src) {
   if (!a || !a.hex || typeof a.gs !== "number") return null;
   if (a.alt_baro === "ground" || a.lat == null || a.lon == null) return null;
   if (!GOOD_TYPES.has(a.type)) return null;            // skip MLAT / TIS-B: their speeds are noisy
@@ -522,99 +599,65 @@ function normAdsb(a, at, src) {
   const seenPos = typeof a.seen_pos === "number" ? a.seen_pos : seen;
   if (seen > 30 || seenPos > 60) return null;
   if (a.gs > MAX_PLAUSIBLE) return null;
-  if (typeof a.tas === "number" && a.tas > 0 && a.gs - a.tas > 320) return null;  // stronger tailwind than any jet stream: bad data
+  if (typeof a.tas === "number" && a.tas > 0 && a.gs - a.tas > 320) return null;  // tailwind beyond any jet stream: bad data
   return {
     hex: a.hex.toLowerCase().replace("~", ""), flight: (a.flight || "").trim(), reg: a.r || "", type: a.t || "",
     desc: a.desc || "", op: a.ownOp || "", year: a.year || "", mil: !!(a.dbFlags & 1),
-    lat: a.lat, lon: a.lon, alt, altGeom: a.alt_geom, gs: a.gs, tas: a.tas, ias: a.ias, mach: a.mach,
+    lat: a.lat, lon: a.lon, alt, gs: a.gs, tas: a.tas, mach: a.mach,
     track: typeof a.track === "number" ? a.track : (typeof a.true_heading === "number" ? a.true_heading : null),
     vr: typeof a.baro_rate === "number" ? a.baro_rate : a.geom_rate, squawk: a.squawk, ws: a.ws, wd: a.wd, oat: a.oat,
-    cat: a.category, t: at - seen * 1000, src
+    t: at - seenPos * 1000, src
   };
 }
-function normOpenSky(s, at) {
-  // [icao24, callsign, country, time_position, last_contact, lon, lat, baro_alt, on_ground, velocity, track, vrate, sensors, geo_alt, squawk, spi, position_source]
-  if (!s || s[8] || s[9] == null || s[5] == null || s[6] == null) return null;
-  if (s[16] != null && s[16] !== 0) return null;
-  const altFt = s[7] != null ? s[7] * 3.28084 : (s[13] != null ? s[13] * 3.28084 : null);
-  if (altFt == null || altFt < 1000) return null;
-  const gs = s[9] * 1.943844;
-  if (gs > MAX_PLAUSIBLE) return null;
-  const t = (s[3] || s[4]) * 1000;
-  if (at - t > 60000) return null;
-  return {
-    hex: String(s[0]).toLowerCase(), flight: (s[1] || "").trim(), reg: "", type: "", desc: "", op: "", year: "",
-    country: s[2], mil: false, lat: s[6], lon: s[5], alt: Math.round(altFt), gs, track: s[10],
-    vr: s[11] != null ? s[11] * 196.85 : null, squawk: s[14], t, src: "OpenSky"
-  };
-}
-
 function upsert(r) {
   const prev = pool.get(r.hex);
   if (prev && prev.t >= r.t) return;
-  // keep descriptive fields that some feeds omit
-  if (prev) for (const k of ["reg", "type", "desc", "op", "year", "country"]) if (!r[k] && prev[k]) r[k] = prev[k];
+  if (prev) for (const k of ["reg", "type", "desc", "op", "year"]) if (!r[k] && prev[k]) r[k] = prev[k];
   const sus = suspects.get(r.hex);
   const consistent = (prev && (r.t - prev.t) < 180000 && Math.abs(r.gs - prev.gs) <= 45) ||
                      (sus && r.t > sus.t && Math.abs(r.gs - sus.gs) <= 45);
-  if (r.gs >= CONFIRM_ABOVE && !consistent) {
-    // fast reading without a matching earlier report: hold it aside until a second one agrees
-    suspects.set(r.hex, r); recheck.add(r.hex);
-    return;
-  }
+  if (r.gs >= CONFIRM_ABOVE && !consistent) { suspects.set(r.hex, r); recheck.add(r.hex); return; }
   suspects.delete(r.hex);
-  r.confirmed = true;
   pool.set(r.hex, r);
   if (champ && champ.hex === r.hex) {
     const last = champ.trail[champ.trail.length - 1];
     if (!last || last[0] !== r.lat || last[1] !== r.lon) champ.trail.push([r.lat, r.lon]);
-    if (champ.trail.length > 600) champ.trail.shift();
+    if (champ.trail.length > 800) champ.trail.shift();
     champ.history.push({ t: r.t, gs: r.gs });
-    if (champ.history.length > 400) champ.history.shift();
+    if (champ.history.length > 500) champ.history.shift();
   }
 }
-function ingest(res, regionIdx) {
-  let best = 0, n = 0;
-  for (const a of res.list) {
-    const r = normAdsb(a, res.at, res.src);
-    if (!r) continue;
-    n++; upsert(r); if (r.gs > best) best = r.gs;
-  }
-  if (regionIdx != null) { regionHeat[regionIdx] = best; regionLast[regionIdx] = Date.now(); flashRegion(regionIdx); }
+function ingest(res) {
+  let n = 0;
+  for (const a of res.list) { const r = norm(a, res.at, res.src); if (r) { upsert(r); n++; } }
   return n;
 }
 
-/* ================= scanning ================= */
-async function scanRegion(i) {
-  const [, la, lo] = REGIONS[i];
-  const res = await adsb("point", la, lo, RADIUS_NM);
-  return ingest(res, i);
+/* ================= sweeping ================= */
+async function sweepOne(prio = 1) {
+  const item = SWEEP[sweepIdx++ % SWEEP.length];
+  const res = await enqueue(item[0], item.slice(1), prio);
+  sweepsDone++;
+  return ingest(res);
 }
-async function scanHex(h) { const res = await adsb("hex", h); recheck.delete(h); return ingest(res); }
-async function scanMil() { const res = await adsb("mil"); return ingest(res); }
-async function openSkySweep() {
-  if (Date.now() < osState.nextAt) return;
-  osState.nextAt = Date.now() + OPENSKY_EVERY;
-  try {
-    const j = await getJSON(`${RELAY}/osky/api/states/all`, 20000);
-    const at = Date.now(); let n = 0;
-    for (const s of j.states || []) { const r = normOpenSky(s, at); if (r) { upsert(r); n++; } }
-    osState.ok++; osState.last = at;
-  } catch (e) {
-    osState.fails++;
-    osState.nextAt = Date.now() + (e.status === 429 ? 6 * 3600000 : 30 * 60000);
+async function sweepLoop() {
+  // keeps one sweep request waiting behind the leader checks, forever
+  for (;;) {
+    if (document.hidden) { await sleep(1000); continue; }
+    try { await sweepOne(1); } catch (e) { await sleep(1500); }
   }
 }
+async function scanHex(h) { const res = await enqueue("hex", [h], 5); recheck.delete(h); return ingest(res); }
 
 function freshRanking() {
   const now = Date.now();
   return [...pool.values()]
-    .filter(r => r.confirmed && now - r.t < STALE_MS && !(champ && r.hex === champ.hex && now - r.t > CHAMP_STALE_MS))
+    .filter(r => now - r.t < STALE_MS && !(champ && r.hex === champ.hex && now - r.t > CHAMP_STALE_MS))
     .sort((a, b) => b.gs - a.gs);
 }
 function prune() {
   const now = Date.now();
-  for (const [h, r] of pool) if (now - r.t > STALE_MS * 2 && !(champ && champ.hex === h)) pool.delete(h);
+  for (const [h, r] of pool) if (now - r.t > STALE_MS * 1.5 && !(champ && champ.hex === h)) pool.delete(h);
   for (const [h, r] of suspects) if (now - r.t > 120000) { suspects.delete(h); recheck.delete(h); }
 }
 
@@ -624,25 +667,14 @@ async function runCheck() {
   checking = true; checkNo++;
   $("checkBox").classList.add("busy");
   $("checkLabel").textContent = "Checking"; $("checkVal").textContent = "#" + checkNo;
-  const jobs = [];
   const hexes = [];
   const add = h => { if (h && !hexes.includes(h) && hexes.length < 4) hexes.push(h); };
   if (champ) add(champ.hex);
   for (const h of recheck) add(h);
-  for (const r of freshRanking().slice(0, 4)) add(r.hex);
-  hexes.forEach(h => jobs.push(() => scanHex(h)));
-  const now = Date.now();
-  const rr = rrIdx++ % REGIONS.length;
-  jobs.push(() => scanRegion(rr));
-  let hot = -1, hotV = -1;
-  REGIONS.forEach((_, i) => { if (i !== rr && now - regionLast[i] > 30000 && regionHeat[i] > hotV) { hot = i; hotV = regionHeat[i]; } });
-  if (hot >= 0) jobs.push(() => scanRegion(hot));
-  if (checkNo % 3 === 0) jobs.push(() => scanMil());
-  if (Date.now() >= osState.nextAt) openSkySweep();
-  let okCount = 0;
-  for (const job of jobs) { try { await job(); okCount++; } catch (e) {} await sleep(180); }
+  for (const r of freshRanking().slice(0, 3)) add(r.hex);
+  await Promise.allSettled(hexes.map(scanHex));
   prune();
-  evaluate(okCount === 0);
+  evaluate(Date.now() - lastOk > 25000);
   checking = false;
   $("checkBox").classList.remove("busy");
 }
@@ -652,13 +684,10 @@ function evaluate(feedDown) {
   const ranked = freshRanking();
   const top = ranked[0];
   let verdict, detail = {};
-  if (feedDown && champ) {
-    verdict = "nodata";
-  } else if (!top) {
-    verdict = "empty";
-  } else if (!champ) {
-    crown(top, "first"); verdict = "first";
-  } else if (top.hex === champ.hex) {
+  if (feedDown && champ) verdict = "nodata";
+  else if (!top) verdict = "empty";
+  else if (!champ) { crown(top, "first"); verdict = "first"; }
+  else if (top.hex === champ.hex) {
     champ.checks++; champ.max = Math.max(champ.max, top.gs);
     verdict = "held"; detail.margin = ranked[1] ? top.gs - ranked[1].gs : null; detail.next = ranked[1];
   } else {
@@ -676,16 +705,13 @@ function evaluate(feedDown) {
 
 function crown(r, reason) {
   const now = Date.now();
-  if (champ) {
-    const prevReign = reigns[0];
-    if (prevReign && !prevReign.end) prevReign.end = now;
-  }
+  if (reigns[0] && !reigns[0].end) reigns[0].end = now;
   champ = { hex: r.hex, start: now, checks: 1, max: r.gs, reason, history: [{ t: r.t, gs: r.gs }], trail: [[r.lat, r.lon]], snap: r };
-  reigns.unshift({ hex: r.hex, flight: r.flight, type: r.type, start: now, end: null, max: r.gs, reason });
+  reigns.unshift({ hex: r.hex, flight: r.flight, type: r.type, start: now, end: null, max: r.gs });
   if (reigns.length > 25) reigns.pop();
   loadEnrichment(r);
-  drawRoute(); drawTrail();
-  if (follow) map.flyTo([r.lat, r.lon], Math.max(map.getZoom(), 5), { duration: 1.6 });
+  drawRoute();
+  if (follow && booted) focusOn(predict(r), Math.max(map.getZoom(), 5), true);
 }
 
 /* ================= enrichment (route, owner, photo) ================= */
@@ -695,7 +721,7 @@ async function loadEnrichment(r) {
   enrich.set(r.hex, e);
   const jobs = [
     getJSON(`https://api.adsbdb.com/v0/aircraft/${r.hex}`, 8000).then(j => { e.aircraft = j?.response?.aircraft || null; }).catch(() => {}),
-    getJSON(`https://api.planespotters.net/pub/photos/hex/${r.hex}`, 8000).then(j => { e.photo = (j?.photos || [])[0] || null; }).catch(() => {})
+    getJSON(`${RELAY}/ps/pub/photos/hex/${r.hex}`, 8000).then(j => { e.photo = (j?.photos || [])[0] || null; }).catch(() => {})
   ];
   if (r.flight) jobs.push(getJSON(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(r.flight)}`, 8000)
     .then(j => { e.route = j?.response?.flightroute || null; }).catch(() => {}));
@@ -707,64 +733,103 @@ function plausibleRoute(route, r) {
   if (!o || !d || o.latitude == null || d.latitude == null) return null;
   const A = [o.latitude, o.longitude], B = [d.latitude, d.longitude], P = [r.lat, r.lon];
   const total = haversineNm(A, B), flown = haversineNm(A, P), left = haversineNm(P, B);
-  if (total < 50 || flown + left > total * 1.25 + 60) return null;   // callsign-route databases go stale; reject mismatches
+  if (total < 50 || flown + left > total * 1.25 + 60) return null;   // callsign-route data goes stale; reject mismatches
   return { o, d, A, B, total, flown, left, pct: Math.max(0, Math.min(1, flown / (flown + left))) };
 }
 
 /* ================= map ================= */
-const map = L.map("map", { zoomControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 11, attributionControl: true })
+const map = L.map("map", { zoomControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 12, attributionControl: true, zoomSnap: .5 })
   .setView([42, -40], 3);
 map.attributionControl.setPosition("topleft").setPrefix(false);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-  subdomains: "abcd", maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(map);
+for (const [name, z] of [["tint", 250], ["night", 260], ["labels", 300], ["field", 350]]) {
+  const p = map.createPane(name); p.style.zIndex = z; p.style.pointerEvents = "none";
+}
+const tintRect = L.rectangle([[-86, -900], [86, 900]], { pane: "tint", renderer: L.svg({ pane: "tint" }), stroke: false, fillOpacity: 0, interactive: false }).addTo(map);
+let baseLayer = null, labelLayer = null;
+function applyStyle() {
+  const s = STYLES[style];
+  if (baseLayer) map.removeLayer(baseLayer);
+  if (labelLayer) map.removeLayer(labelLayer);
+  baseLayer = s.base().addTo(map);
+  labelLayer = s.labels ? s.labels().addTo(map) : null;
+  tintRect.setStyle(s.tint ? { fillColor: s.tint[0], fillOpacity: s.tint[1] } : { fillOpacity: 0 });
+  $("styleBtn").setAttribute("aria-label", `Map style: ${s.label}. Tap to change`);
+  $("styleBtn").title = `Map style: ${s.label}`;
+}
 
-const covLayer = L.layerGroup().addTo(map);
-const covCircles = REGIONS.map(([n, la, lo]) => L.circle([la, lo], { radius: RADIUS_NM * 1852, color: "#A4B7CC", weight: 1, opacity: .09, fill: false, className: "cov", interactive: false }).addTo(covLayer));
-function flashRegion(i) {
-  if (!showCov) return;
-  const el = covCircles[i].getElement && covCircles[i].getElement();
-  if (!el) return;
-  el.classList.add("hit"); void el.getBoundingClientRect();
-  requestAnimationFrame(() => setTimeout(() => el.classList.remove("hit"), 60));
+// Night side of the Earth, recomputed every few minutes.
+const nightLayer = L.polygon([], { pane: "night", renderer: L.svg({ pane: "night" }), stroke: false, fillColor: "#000814", fillOpacity: .32, interactive: false }).addTo(map);
+function sunPosition(date) {
+  const n = date / 86400000 + 2440587.5 - 2451545.0;
+  const L0 = (280.46 + 0.9856474 * n) % 360, g = ((357.528 + 0.9856003 * n) % 360) * RAD;
+  const lam = (L0 + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * RAD, eps = (23.439 - 0.0000004 * n) * RAD;
+  const dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+  const ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam)) * DEG;
+  const gmst = ((18.697374558 + 24.06570982441908 * n) % 24) * 15;
+  let lon = ra - gmst; lon = ((lon + 540) % 360) - 180;
+  return { lat: dec * DEG, lon };
+}
+function drawNight() {
+  const sun = sunPosition(Date.now());
+  const dec = Math.abs(sun.lat) < 0.05 ? 0.05 : sun.lat;
+  const pts = [];
+  for (let lon = -900; lon <= 900; lon += 3) {
+    const lat = Math.atan(-Math.cos((lon - sun.lon) * RAD) / Math.tan(dec * RAD)) * DEG;
+    pts.push([Math.max(-85, Math.min(85, lat)), lon]);
+  }
+  const pole = dec < 0 ? 85 : -85;
+  pts.push([pole, 900], [pole, -900]);
+  nightLayer.setLatLngs(pts);
 }
 
 const routeLayer = L.layerGroup().addTo(map);
-const trailLayer = L.layerGroup().addTo(map);
+const trailGlow = L.polyline([], { color: "#FFB23F", weight: 9, opacity: .14, interactive: false }).addTo(map);
+const trailLine = L.polyline([], { color: "#FFB23F", weight: 2.5, opacity: .95, interactive: false }).addTo(map);
+const fieldLayer = L.layerGroup().addTo(map);
+const fieldRenderer = L.canvas({ pane: "field", padding: .4 });
 const rivalLayer = L.layerGroup().addTo(map);
+let rivalMarkers = [];
 let champMarker = null;
+
+function speedColor(kt) { return kt >= 640 ? "#FFB23F" : kt >= 600 ? "#F1D49B" : kt >= 560 ? "#9DB6D2" : "#58739A"; }
+
+// Center a point in the part of the map the panel doesn't cover.
+function focusOn(latlng, zoom, animate) {
+  const z = zoom ?? map.getZoom();
+  const size = map.getSize();
+  let dx = 0, dy = 0;
+  if (window.innerWidth >= 900) dx = -213;
+  else {
+    const top = 70, bottom = sheet.getBoundingClientRect().top;
+    dy = size.y / 2 - (top + bottom) / 2;
+  }
+  const p = map.project(latlng, z).add([dx, dy]);
+  const c = map.unproject(p, z);
+  if (animate) map.flyTo(c, z, { duration: 1.2 }); else map.setView(c, z, { animate: false });
+}
 
 function champIconHtml(r) {
   return `<div class="champ-wrap"><div class="halo"></div><div class="ring"></div>
     <svg viewBox="0 0 64 64" style="transform:rotate(${r.track || 0}deg)"><path d="${PLANE_PATH}" fill="#FFB23F" stroke="#1B1206" stroke-width="1.5"/></svg>
-    <span class="champ-tag">${esc(r.flight || r.reg || r.hex.toUpperCase())} · ${fmtSpeed(r.gs)}</span></div>`;
+    <span class="champ-tag">${esc(label(r))} · ${fmtSpeed(r.gs)}</span></div>`;
 }
 function drawChamp() {
   if (!champ) return;
   const r = pool.get(champ.hex) || champ.snap;
-  const icon = L.divIcon({ className: "", html: champIconHtml(r), iconSize: [64, 64], iconAnchor: [32, 32] });
+  const pos = predict(r);
   if (!champMarker) {
-    champMarker = L.marker([r.lat, r.lon], { icon, zIndexOffset: 1000, keyboard: false }).addTo(map);
+    champMarker = L.marker(pos, { icon: L.divIcon({ className: "", html: champIconHtml(r), iconSize: [64, 64], iconAnchor: [32, 32] }), zIndexOffset: 1000, keyboard: false }).addTo(map);
     champMarker.on("click", () => openSheet(true));
-  } else {
-    const el = champMarker.getElement();
-    const svg = el && el.querySelector("svg");
-    const sameAircraft = el && el.dataset.hex === r.hex;
-    champMarker.setLatLng([r.lat, r.lon]);
-    if (sameAircraft && svg) {
-      svg.style.transform = `rotate(${r.track || 0}deg)`;
-      el.querySelector(".champ-tag").textContent = `${r.flight || r.reg || r.hex.toUpperCase()} · ${fmtSpeed(r.gs)}`;
-    } else champMarker.setIcon(icon);
   }
-  const el = champMarker.getElement(); if (el) el.dataset.hex = r.hex;
-  if (follow && booted) map.panTo([r.lat, r.lon], { animate: true, duration: 1.2 });
-}
-function drawTrail() {
-  trailLayer.clearLayers();
-  if (!champ || champ.trail.length < 2) return;
-  L.polyline(champ.trail, { color: "#FFB23F", weight: 9, opacity: .12, interactive: false }).addTo(trailLayer);
-  L.polyline(champ.trail, { color: "#FFB23F", weight: 2.5, opacity: .9, interactive: false }).addTo(trailLayer);
+  const el = champMarker.getElement();
+  if (!el || el.dataset.hex !== r.hex) {
+    champMarker.setIcon(L.divIcon({ className: "", html: champIconHtml(r), iconSize: [64, 64], iconAnchor: [32, 32] }));
+  } else {
+    el.querySelector("svg").style.transform = `rotate(${r.track || 0}deg)`;
+    el.querySelector(".champ-tag").textContent = `${label(r)} · ${fmtSpeed(r.gs)}`;
+  }
+  const el2 = champMarker.getElement(); if (el2) el2.dataset.hex = r.hex;
+  champMarker.setLatLng(pos);
 }
 function drawRoute() {
   routeLayer.clearLayers();
@@ -772,31 +837,67 @@ function drawRoute() {
   const e = enrich.get(champ.hex), r = pool.get(champ.hex) || champ.snap;
   const pr = e && plausibleRoute(e.route, r);
   if (!pr) return;
-  L.polyline(greatCircle(pr.A, pr.B), { color: "#A4B7CC", weight: 1.5, opacity: .55, dashArray: "4 7", interactive: false }).addTo(routeLayer);
+  L.polyline(greatCircle(pr.A, pr.B), { color: "#A4B7CC", weight: 1.5, opacity: .6, dashArray: "4 7", interactive: false }).addTo(routeLayer);
   for (const [ap, pos] of [[pr.o, pr.A], [pr.d, pr.B]]) {
     L.circleMarker(pos, { radius: 4, color: "#A4B7CC", weight: 1.5, fillColor: "#0A1424", fillOpacity: 1, interactive: false }).addTo(routeLayer);
     L.marker(pos, { icon: L.divIcon({ className: "", html: `<div class="ap-label">${esc(ap.iata_code || ap.icao_code)}</div>`, iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(routeLayer);
   }
 }
 function drawRivals(ranked) {
-  rivalLayer.clearLayers();
+  rivalLayer.clearLayers(); rivalMarkers = [];
+  const placed = [];
+  if (champMarker) placed.push(map.latLngToContainerPoint(champMarker.getLatLng()));
   ranked.filter(r => !champ || r.hex !== champ.hex).slice(0, 8).forEach((r, i) => {
-    const html = `<div class="rival"><svg viewBox="0 0 64 64" style="transform:rotate(${r.track || 0}deg)"><path d="${PLANE_PATH}" fill="#A4B7CC" fill-opacity="${i < 3 ? .95 : .6}" stroke="#0A1424" stroke-width="2"/></svg>${i < 4 ? `<span>${esc(r.flight || r.hex.toUpperCase())} ${fmtSpeed(r.gs)}</span>` : ""}</div>`;
-    const m = L.marker([r.lat, r.lon], { icon: L.divIcon({ className: "", html, iconSize: [26, 26], iconAnchor: [13, 13] }), keyboard: false }).addTo(rivalLayer);
+    const pos = predict(r);
+    const pt = map.latLngToContainerPoint(pos);
+    const crowded = placed.some(p => Math.abs(p.x - pt.x) < 90 && Math.abs(p.y - pt.y) < 30);
+    const showLabel = i < 4 && !crowded;
+    if (showLabel) placed.push(pt);
+    const html = `<div class="rival"><svg viewBox="0 0 64 64" style="transform:rotate(${r.track || 0}deg)"><path d="${PLANE_PATH}" fill="#C9D6E5" fill-opacity="${i < 3 ? .95 : .65}" stroke="#0A1424" stroke-width="2"/></svg>${showLabel ? `<span><b>${i + 2}</b> ${esc(label(r))} ${fmtSpeed(r.gs)}</span>` : ""}</div>`;
+    const m = L.marker(pos, { icon: L.divIcon({ className: "", html, iconSize: [26, 26], iconAnchor: [13, 13] }), keyboard: false, zIndexOffset: 500 - i }).addTo(rivalLayer);
     m.bindPopup(() => popupHtml(r, i + 2));
+    rivalMarkers.push([m, r]);
   });
 }
+function drawField() {
+  fieldLayer.clearLayers();
+  if (!showField) return;
+  const now = Date.now();
+  let n = 0;
+  for (const r of pool.values()) {
+    if (now - r.t > STALE_MS || r.gs < FIELD_SHOW || (champ && r.hex === champ.hex)) continue;
+    L.circleMarker(predict(r, now), { renderer: fieldRenderer, radius: r.gs >= 600 ? 2.8 : 2, stroke: false, fillColor: speedColor(r.gs), fillOpacity: .9, interactive: false }).addTo(fieldLayer);
+    n++;
+  }
+  $("legendCount").textContent = `${fmtInt(n)} jets ≥ ${fmtSpeed(FIELD_SHOW)} ${UNITS[unit].label}`;
+}
 function popupHtml(r, rank) {
-  const gap = champ ? (pool.get(champ.hex)?.gs || 0) - r.gs : 0;
-  return `<div style="font:700 20px/1 var(--display);letter-spacing:.05em">${esc(r.flight || r.hex.toUpperCase())}</div>
-    <div style="color:var(--muted);margin:3px 0 8px">${esc([r.type, r.reg, r.op].filter(Boolean).join(" · ") || r.country || "Unknown aircraft")}</div>
-    <div class="num" style="font:600 13px var(--mono)">#${rank} · ${fmtSpeed(r.gs)} ${UNITS[unit].label} <span style="color:var(--muted)">(${fmtSpeed(gap)} behind)</span></div>
-    <div class="num" style="font:400 12px var(--mono);color:var(--steel);margin-top:4px">FL${String(Math.round(r.alt / 100)).padStart(3, "0")} · ${r.track != null ? Math.round(r.track) + "° " + cardinal(r.track) : "--"}</div>`;
+  const lead = champ ? (pool.get(champ.hex)?.gs || 0) : 0;
+  return `<div style="font:700 20px/1 var(--display);letter-spacing:.05em">${esc(label(r))}</div>
+    <div style="color:var(--muted);margin:3px 0 8px">${esc([r.type, r.reg, r.op].filter(Boolean).join(" · ") || "Unknown aircraft")}</div>
+    <div class="num" style="font:600 13px var(--mono)">#${rank} · ${fmtSpeed(r.gs)} ${UNITS[unit].label} <span style="color:var(--muted)">(${fmtSpeed(lead - r.gs)} behind)</span></div>
+    <div class="num" style="font:400 12px var(--mono);color:var(--steel);margin-top:4px">${fl(r.alt)} · ${r.track != null ? Math.round(r.track) + "° " + cardinal(r.track) : "--"}</div>`;
+}
+
+// Glide markers between reports instead of jumping every 10 seconds.
+let lastGlide = 0;
+function glide(ts) {
+  if (ts - lastGlide > 200 && champ && champMarker) {
+    lastGlide = ts;
+    const now = Date.now();
+    const r = pool.get(champ.hex) || champ.snap;
+    const pos = predict(r, now);
+    champMarker.setLatLng(pos);
+    const pts = champ.trail.concat([pos]);
+    trailLine.setLatLngs(pts); trailGlow.setLatLngs(pts);
+    for (const [m, rr] of rivalMarkers) m.setLatLng(predict(pool.get(rr.hex) || rr, now));
+  }
+  requestAnimationFrame(glide);
 }
 
 /* ================= speed tape ================= */
 const tape = $("tape"); const tctx = tape.getContext("2d");
-let tapeShown = null, tapeTarget = null, tapeMarks = [];
+let tapeShown = null, tapeTarget = null, tapeMarks = {};
 function sizeTape() {
   const dpr = window.devicePixelRatio || 1, w = tape.clientWidth, h = tape.clientHeight;
   tape.width = Math.round(w * dpr); tape.height = Math.round(h * dpr);
@@ -809,7 +910,7 @@ function drawTape() {
   if (tapeShown == null) return;
   const k = UNITS[unit].k, v = tapeShown * k;
   const minor = unit === "kmh" ? 20 : 10, major = unit === "kmh" ? 100 : 50;
-  const ppu = 2.6 / k;           // pixels per display unit (constant pixels per knot)
+  const ppu = 2.6 / k;
   const cx = w / 2, base = 34;
   const lo = Math.floor((v - cx / ppu) / minor) * minor, hi = v + cx / ppu;
   tctx.strokeStyle = "rgba(164,183,204,.45)"; tctx.fillStyle = "#7489A3";
@@ -821,25 +922,23 @@ function drawTape() {
     tctx.beginPath(); tctx.moveTo(x, base); tctx.lineTo(x, base - (isMaj ? 13 : 6)); tctx.stroke();
     if (isMaj) tctx.fillText(String(s), x, base + 15);
   }
-  // speed of sound reference band
   if (tapeMarks.sound) {
     const x = cx + (tapeMarks.sound * k - v) * ppu;
     if (x > 0 && x < w) {
       tctx.fillStyle = "rgba(164,183,204,.10)"; tctx.fillRect(x, 6, w - x, base - 6);
       tctx.strokeStyle = "rgba(164,183,204,.6)"; tctx.setLineDash([2, 3]); tctx.beginPath(); tctx.moveTo(x + .5, 4); tctx.lineTo(x + .5, base); tctx.stroke(); tctx.setLineDash([]);
       tctx.fillStyle = "#A4B7CC"; tctx.textAlign = "left"; tctx.font = "500 9.5px 'IBM Plex Mono', monospace";
-      tctx.fillText("MACH 1 here", x + 4, 12); tctx.textAlign = "center";
+      if (x < cx - 80 || x > cx + 10) tctx.fillText("MACH 1 here", x + 4, 12);
+      tctx.textAlign = "center";
     }
   }
-  // challengers
   (tapeMarks.rivals || []).forEach((r, i) => {
     const x = cx + (r.gs * k - v) * ppu;
     if (x < 8 || x > w - 8) return;
-    tctx.fillStyle = i === 0 ? "#A4B7CC" : "rgba(164,183,204,.55)";
+    tctx.fillStyle = i === 0 ? "#C9D6E5" : "rgba(164,183,204,.55)";
     tctx.beginPath(); tctx.moveTo(x, base - 2); tctx.lineTo(x - 5, base - 10); tctx.lineTo(x + 5, base - 10); tctx.closePath(); tctx.fill();
-    if (i === 0) { tctx.font = "500 9.5px 'IBM Plex Mono', monospace"; tctx.fillText(r.flight || "#2", x, base - 15); }
+    if (i === 0 && Math.abs(x - cx) > 30) { tctx.font = "500 9.5px 'IBM Plex Mono', monospace"; tctx.fillText(r.flight || "#2", x, base - 15); }
   });
-  // leader pointer
   tctx.fillStyle = "#FFB23F";
   tctx.fillRect(cx - 1, 2, 2, base - 1);
   tctx.beginPath(); tctx.moveTo(cx, base + 2); tctx.lineTo(cx - 7, base + 11); tctx.lineTo(cx + 7, base + 11); tctx.closePath(); tctx.fill();
@@ -872,33 +971,31 @@ function setSpeed(kt) {
 /* ================= rendering ================= */
 function renderAll() {
   const ranked = freshRanking();
-  drawRivals(ranked);
   renderSources();
-  $("poolNote").textContent = `${fmtInt(ranked.length)} aircraft in view`;
+  $("poolNote").textContent = `${fmtInt(ranked.length)} fast jets tracked`;
+  drawField();
   if (!champ) return;
+  drawChamp();
+  drawRivals(ranked);
   const r = pool.get(champ.hex) || champ.snap;
   const e = enrich.get(champ.hex) || {};
   const ac = e.aircraft || {};
-  drawChamp(); drawTrail();
 
   setSpeed(r.gs);
   $("unitBtn").textContent = UNITS[unit].label;
   const sound = soundSpeedKt(r);
-  $("machChip").textContent = r.mach ? `Mach ${r.mach.toFixed(2)} · TAS ${fmtSpeed(r.tas || 0)}` : (r.tas ? `TAS ${fmtSpeed(r.tas)} ${UNITS[unit].label}` : "");
+  $("machChip").textContent = r.mach ? `Mach ${r.mach.toFixed(2)} through the air` : "";
   tapeTarget = r.gs;
   tapeMarks = { rivals: ranked.filter(x => x.hex !== r.hex).slice(0, 3), sound };
   drawTape();
+  renderBudget(r);
 
-  // status pill
   const last = checks[0];
-  const pill = $("statusPill");
-  pill.className = "pill " + (last && (last.verdict === "overtaken") ? "new" : last && last.verdict === "lost" ? "lost" : last && last.verdict === "nodata" ? "lost" : "hold");
+  $("statusPill").className = "pill " + (last && last.verdict === "overtaken" ? "new" : last && (last.verdict === "lost" || last.verdict === "nodata") ? "lost" : "hold");
   $("statusText").textContent = statusText(last);
 
-  // identity
-  $("callsign").textContent = r.flight || r.reg || r.hex.toUpperCase();
-  const airline = e.route?.airline?.name || r.op || ac.registered_owner || (r.mil ? "Military" : "") || r.country || "";
-  $("airline").textContent = airline;
+  $("callsign").textContent = label(r);
+  $("airline").textContent = e.route?.airline?.name || r.op || ac.registered_owner || (r.mil ? "Military" : "");
   const typeName = r.desc || [ac.manufacturer, ac.type].filter(Boolean).join(" ") || r.type || "Aircraft type unknown";
   const bits = [`<b>${esc(typeName)}</b>`];
   if (r.reg || ac.registration) bits.push(esc(r.reg || ac.registration));
@@ -913,8 +1010,7 @@ function renderAll() {
     $("dstCode").textContent = pr.d.iata_code || pr.d.icao_code; $("dstName").textContent = pr.d.municipality || pr.d.name || "";
     $("rbarFill").style.width = (pr.pct * 100).toFixed(1) + "%";
     $("rbarPlane").style.left = (pr.pct * 100).toFixed(1) + "%";
-    const etaMin = pr.left / Math.max(r.gs, 1) * 60;
-    $("routeNote").textContent = `${fmtInt(pr.left)} nm to go · about ${dur(etaMin * 60000)} at this speed`;
+    $("routeNote").textContent = `${fmtInt(pr.left)} nm to go · about ${dur(pr.left / Math.max(r.gs, 1) * 3600000)} at this speed`;
   }
 
   $("insight").innerHTML = insight(r, ranked, sound);
@@ -926,24 +1022,36 @@ function renderAll() {
   renderReigns();
   tickClock();
 }
+function renderBudget(r) {
+  const box = $("budget");
+  if (!r.tas || r.tas < 100) { box.hidden = true; return; }
+  box.hidden = false;
+  const u = UNITS[unit].label, tail = r.gs - r.tas;
+  const total = Math.max(r.gs, r.tas);
+  $("budAir").style.width = (Math.min(r.tas, r.gs) / total * 100).toFixed(1) + "%";
+  $("budJet").style.width = (Math.max(0, tail) / total * 100).toFixed(1) + "%";
+  $("budHead").style.width = (Math.max(0, -tail) / total * 100).toFixed(1) + "%";
+  $("budAirTxt").textContent = `Airspeed ${fmtSpeed(r.tas)}`;
+  $("budJetTxt").textContent = tail >= 0 ? `Tailwind +${fmtSpeed(tail)} ${u}` : `Headwind −${fmtSpeed(-tail)} ${u}`;
+  $("budJetTxt").className = tail >= 0 ? "j" : "h";
+}
 function statusText(c) {
   if (!c || !champ) return "Scanning";
-  if (c.verdict === "nodata") return "Feeds not answering";
+  if (c.verdict === "nodata") return "Feeds slow, holding last leader";
   if (c.verdict === "overtaken") return "New leader";
-  if (c.verdict === "lost") return "Took over · prior leader lost";
+  if (c.verdict === "lost") return "Took over · prior leader out of range";
   return `Leading ${dur(Date.now() - champ.start)} · ${champ.checks} ${champ.checks === 1 ? "check" : "checks"}`;
 }
 function insight(r, ranked, sound) {
   const u = UNITS[unit].label;
   const next = ranked.find(x => x.hex !== r.hex);
-  const lead = next ? `<strong>${fmtSpeed(r.gs - next.gs)} ${u}</strong> ahead of ${esc(next.flight || next.hex.toUpperCase())}.` : "";
+  const lead = next ? `<strong>${fmtSpeed(r.gs - next.gs)} ${u}</strong> ahead of ${esc(label(next))}.` : "";
   if (r.mil) return `Military aircraft, broadcasting openly. Most military jets switch off public position reports, so only some appear here. ${lead}`;
   if (r.tas && r.gs - r.tas > 40) {
-    const push = r.gs - r.tas;
-    return `Riding a <strong>${fmtSpeed(push)} ${u} tailwind</strong>. Through the air it's doing ${fmtSpeed(r.tas)} ${u}${r.mach ? ` (Mach ${r.mach.toFixed(2)})` : ""}; the jet stream adds the rest. ${lead}`;
+    return `The jet stream is doing a lot of the work: <strong>${fmtSpeed(r.gs - r.tas)} ${u}</strong> of this speed is tailwind. ${lead}`;
   }
-  if (r.gs > sound) return `Moving over the ground faster than the local speed of sound (${fmtSpeed(sound)} ${u}), yet still subsonic through the air. The difference is tailwind. ${lead}`;
-  return `Cruising at FL${String(Math.round(r.alt / 100)).padStart(3, "0")} heading ${r.track != null ? cardinal(r.track) : "unknown"}. ${lead}`;
+  if (r.gs > sound) return `Faster over the ground than the speed of sound at its altitude (${fmtSpeed(sound)} ${u}), yet subsonic through the air. The difference is tailwind. ${lead}`;
+  return `Cruising at ${fl(r.alt)} heading ${r.track != null ? cardinal(r.track) : "unknown"}. ${lead}`;
 }
 function cell(k, v, extra = "", cls = "") {
   return `<div class="cell ${cls}"><div class="k">${k}</div><div class="v ${v == null ? "dim" : ""}">${v == null ? "--" : v}${extra}</div></div>`;
@@ -956,15 +1064,13 @@ function renderGrid(r, sound) {
   const compass = `<svg class="compass" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="rgba(164,183,204,.35)"/>
     <text x="20" y="9" text-anchor="middle" font-size="7" font-family="IBM Plex Mono" fill="#7489A3">N</text>
     <g style="transform:rotate(${trk || 0}deg);transform-origin:20px 20px;transition:transform .8s"><path d="M20 6 L24 22 L20 19 L16 22 Z" fill="#FFB23F"/><path d="M20 34 L20 23" stroke="rgba(164,183,204,.6)" stroke-width="1.5"/></g></svg>`;
-  const tail = r.tas ? r.gs - r.tas : null;
-  const cells = [];   // [html, optional?]
+  const cells = [];
   cells.push(cell("Altitude", `${fmtInt(r.alt)}<small>ft</small>`));
   cells.push(cell("Vertical", vrTxt, vr != null && Math.abs(vr) >= 150 ? "<small>fpm</small>" : ""));
   cells.push(`<div class="cell"><div class="k">Track</div><div class="cell-flex">${compass}<div class="v num">${trk != null ? String(trk).padStart(3, "0") + "°" : "--"}<small>${trk != null ? cardinal(trk) : ""}</small></div></div></div>`);
   cells.push(cell("Mach 1 here", fmtSpeed(sound), `<small>${u}${typeof r.oat === "number" ? "" : " est."}</small>`));
   if (r.tas) cells.push(cell("Airspeed (TAS)", fmtSpeed(r.tas), `<small>${u}</small>`));
   if (r.mach) cells.push(cell("Mach", r.mach.toFixed(3)));
-  if (tail != null) cells.push(cell("Tailwind", `${tail >= 0 ? "+" : "−"}${fmtSpeed(Math.abs(tail))}`, `<small>${u}</small>`));
   if (r.ws != null && r.wd != null) cells.push(cell("Wind aloft", `${String(Math.round(r.wd)).padStart(3, "0")}° / ${fmtSpeed(r.ws)}`, `<small>${u}</small>`));
   if (typeof r.oat === "number") cells.push(cell("Outside air", `${r.oat > 0 ? "" : "−"}${Math.abs(Math.round(r.oat))}`, "<small>°C</small>"));
   if (r.squawk) cells.push(cell("Squawk", esc(r.squawk)));
@@ -975,9 +1081,10 @@ function renderGrid(r, sound) {
 function renderSpark() {
   const svg = $("spark");
   const h = (champ?.history || []).filter((p, i, a) => i === 0 || p.t > a[i - 1].t);
-  if (h.length < 2) { svg.innerHTML = `<line x1="0" y1="28" x2="300" y2="28" stroke="rgba(164,183,204,.25)" stroke-dasharray="3 4"/>`; $("sparkNote").textContent = "building trace"; return; }
-  const t0 = h[0].t, t1 = h[h.length - 1].t || t0 + 1;
+  if (h.length < 2) { svg.innerHTML = `<line x1="0" y1="28" x2="300" y2="28" stroke="rgba(164,183,204,.25)" stroke-dasharray="3 4"/>`; $("sparkNote").textContent = "trace builds with each report"; return; }
+  const t0 = h[0].t, t1 = h[h.length - 1].t;
   let mn = Math.min(...h.map(p => p.gs)), mx = Math.max(...h.map(p => p.gs));
+  const lo = mn, hiV = mx;
   if (mx - mn < 10) { mn -= 5; mx += 5; }
   const X = t => ((t - t0) / Math.max(1, t1 - t0)) * 296 + 2, Y = g => 50 - ((g - mn) / (mx - mn)) * 42;
   const pts = h.map(p => `${X(p.t).toFixed(1)},${Y(p.gs).toFixed(1)}`);
@@ -988,7 +1095,7 @@ function renderSpark() {
     <polygon points="2,56 ${pts.join(" ")} ${X(last.t).toFixed(1)},56" fill="url(#sg)"/>
     <polyline points="${pts.join(" ")}" fill="none" stroke="#FFB23F" stroke-width="1.8" vector-effect="non-scaling-stroke"/>
     <circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.gs).toFixed(1)}" r="3" fill="#FFB23F"/>`;
-  $("sparkNote").textContent = `peak ${fmtSpeed(champ.max)} · low ${fmtSpeed(Math.min(...h.map(p => p.gs)))} ${UNITS[unit].label}`;
+  $("sparkNote").textContent = `peak ${fmtSpeed(hiV)} · low ${fmtSpeed(lo)} ${UNITS[unit].label}`;
 }
 function renderPhoto(p, ac) {
   const fig = $("photo"), img = $("photoImg");
@@ -1002,23 +1109,25 @@ function renderPhoto(p, ac) {
 function renderBoard(ranked, leader) {
   const rows = [leader, ...ranked.filter(r => r.hex !== leader.hex)].slice(0, 7);
   const pending = [...suspects.values()].filter(r => Date.now() - r.t < 60000 && r.gs > leader.gs).slice(0, 2);
+  const max = leader.gs, min = Math.min(...rows.map(r => r.gs)) - 15;
   $("board").innerHTML = rows.map((r, i) => {
     const gap = i === 0 ? "leader" : `−${fmtSpeed(leader.gs - r.gs)}`;
-    const sub = [r.type, r.reg, r.op || r.country].filter(Boolean).join(" · ") || "Details unavailable";
+    const sub = [r.type, r.reg, r.op].filter(Boolean).join(" · ") || "Details unavailable";
+    const w = ((r.gs - min) / Math.max(1, max - min) * 100).toFixed(1);
     return `<button class="row ${i === 0 ? "lead" : ""}" data-hex="${r.hex}"><span class="rk">${i + 1}</span>
-      <span class="who"><b>${esc(r.flight || r.hex.toUpperCase())}</b><span>${esc(sub)}</span></span>
+      <span class="who"><b>${esc(label(r))}</b><span>${esc(sub)}</span><i class="bar" style="width:${w}%"></i></span>
       <span class="sp"><b>${fmtSpeed(r.gs)}</b><span>${gap}</span></span></button>`;
-  }).join("") + pending.map(r => `<div class="row" style="opacity:.6"><span class="rk">?</span><span class="who"><b>${esc(r.flight || r.hex.toUpperCase())}<i class="tagv">verifying</i></b><span>Single report, waiting for a second one</span></span><span class="sp"><b>${fmtSpeed(r.gs)}</b><span>unconfirmed</span></span></div>`).join("");
+  }).join("") + pending.map(r => `<div class="row" style="opacity:.6"><span class="rk">?</span><span class="who"><b>${esc(label(r))}<i class="tagv">verifying</i></b><span>Single report, waiting for a second one</span></span><span class="sp"><b>${fmtSpeed(r.gs)}</b><span>unconfirmed</span></span></div>`).join("");
 }
 function renderChecks() {
   const u = UNITS[unit].label;
   $("checkLog").innerHTML = checks.slice(0, 6).map(c => {
     let color = "var(--hold)", msg = "", x = "";
-    if (c.verdict === "held") { msg = `<b>Still fastest</b>${c.next ? ` vs ${esc(c.next.flight || c.next.hex.toUpperCase())}` : ""}`; x = c.margin != null ? `+${fmtSpeed(c.margin)} ${u}` : ""; }
+    if (c.verdict === "held") { msg = `<b>Still fastest</b>${c.next ? ` vs ${esc(label(c.next))}` : ""}`; x = c.margin != null ? `+${fmtSpeed(c.margin)} ${u}` : ""; }
     else if (c.verdict === "first") { color = "var(--burn)"; msg = `<b>First leader found</b>`; x = c.leader ? `${fmtSpeed(c.leader.gs)} ${u}` : ""; }
-    else if (c.verdict === "overtaken") { color = "var(--burn)"; msg = `<b>${esc(c.by.flight || c.by.hex.toUpperCase())}</b> took the lead`; x = `${fmtSpeed(c.by.gs)} ${u}`; }
-    else if (c.verdict === "lost") { color = "var(--alert)"; msg = `Leader dropped off coverage`; x = c.by ? esc(c.by.flight || "") : ""; }
-    else if (c.verdict === "nodata") { color = "var(--alert)"; msg = `Feeds didn't answer, keeping last leader`; }
+    else if (c.verdict === "overtaken") { color = "var(--burn)"; msg = `<b>${esc(label(c.by))}</b> took the lead`; x = `${fmtSpeed(c.by.gs)} ${u}`; }
+    else if (c.verdict === "lost") { color = "var(--alert)"; msg = `Leader flew out of receiver range`; x = c.by ? esc(label(c.by)) : ""; }
+    else if (c.verdict === "nodata") { color = "var(--alert)"; msg = `Feeds slow, kept last leader`; }
     else { color = "var(--muted)"; msg = "No eligible aircraft yet"; }
     return `<div class="log-row"><time>${hhmmss(c.t)}</time><span class="m"><span class="d" style="background:${color}"></span>${msg}</span><span class="x num">${x}</span></div>`;
   }).join("");
@@ -1032,20 +1141,25 @@ function renderReigns() {
 }
 function renderSources() {
   const now = Date.now();
-  const all = SOURCES.map((s, i) => ({ name: s.name, st: srcState[i] })).concat([{ name: "OpenSky", st: osState }]);
-  $("srcs").innerHTML = all.map(({ name, st }) => {
-    const cls = st.last && now - st.last < 120000 ? "ok" : st.fails ? "bad" : "";
-    return `<span class="src ${cls}">${name}${cls === "ok" ? " · live" : st.fails ? " · resting" : ""}</span>`;
-  }).join("");
-  const live = all.find(a => a.st.last && now - a.st.last < 30000);
+  $("srcs").innerHTML = SOURCES.map((s, i) => {
+    const st = srcState[i];
+    const cls = st.last && now - st.last < 60000 ? "ok" : st.fails ? "bad" : "";
+    return `<span class="src ${cls}">${s.name}${cls === "ok" ? " · live" : st.fails ? " · resting" : ""}</span>`;
+  }).join("") + `<span class="src">${fmtInt(sweepsDone)} sweeps</span>`;
+  const live = SOURCES.find((s, i) => srcState[i].last && now - srcState[i].last < 30000);
   $("brandSub").textContent = live ? `Live via ${live.name}` : "Live ADS-B · ground speed";
 }
 function tickClock() {
   if (!champ) return;
   const r = pool.get(champ.hex) || champ.snap;
-  $("ageNote").textContent = `report ${dur(Date.now() - r.t)} old · ${r.src}`;
+  $("ageNote").textContent = `report ${dur(Date.now() - r.t)} old`;
   const last = checks[0];
   if (last && (last.verdict === "held" || last.verdict === "first")) $("statusText").textContent = statusText(last);
+}
+function renderLegend() {
+  const u = UNITS[unit].label;
+  $("legendScale").innerHTML = [[500, "#58739A"], [560, "#9DB6D2"], [600, "#F1D49B"], [640, "#FFB23F"]]
+    .map(([v, c], i, a) => `<span><i style="background:${c}"></i>${fmtSpeed(v)}${i === a.length - 1 ? "+ " + u : ""}</span>`).join("");
 }
 
 /* ================= toast ================= */
@@ -1057,14 +1171,20 @@ function showToast(verdict, d) {
   if (verdict === "overtaken") {
     const delta = d.prev ? by.gs - (d.prev.gs || 0) : 0;
     t.className = "toast";
-    t.innerHTML = `<b>${esc(by.flight || by.hex.toUpperCase())}</b><span>takes the lead at ${fmtSpeed(by.gs)} ${u}${delta > 0 ? ` (+${fmtSpeed(delta)})` : ""}</span>`;
+    t.innerHTML = `<b>${esc(label(by))}</b><span>takes the lead at ${fmtSpeed(by.gs)} ${u}${delta > 0 ? ` (+${fmtSpeed(delta)})` : ""}</span>`;
   } else {
     t.className = "toast lost";
-    t.innerHTML = `<b>${esc(by.flight || by.hex.toUpperCase())}</b><span>leads after the previous leader left coverage</span>`;
+    t.innerHTML = `<b>${esc(label(by))}</b><span>leads after the previous leader left receiver range</span>`;
   }
   requestAnimationFrame(() => t.classList.add("show"));
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 4500);
   if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) try { navigator.vibrate(40); } catch (e) {}
+}
+function flashNote(text) {
+  const t = $("toast");
+  t.className = "toast note"; t.innerHTML = `<span>${esc(text)}</span>`;
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
 }
 
 /* ================= countdown ring & loop ================= */
@@ -1088,50 +1208,43 @@ document.addEventListener("visibilitychange", () => {
   else { runCheck(); startLoop(); }
 });
 setInterval(() => { tickClock(); renderSources(); }, 1000);
+setInterval(drawNight, 5 * 60000);
 
 /* ================= boot ================= */
+let sweeping = false;
 async function boot() {
   const bootEl = $("boot");
   bootEl.classList.remove("gone"); $("retryBtn").hidden = true;
-  $("bootMsg").textContent = "Sweeping the world's busiest airspace for the fastest aircraft.";
-  $("bootMsg").classList.remove("err");
+  $("bootMsg").textContent = "Pulling every fast jet the world's receivers can see, starting with the long-haul fleets.";
   if (!RELAY) {
-    $("bootMsg").innerHTML = `<span class="err">The data relay isn't connected on this address.</span> Open the Vercel version of the app, or add ?relay= with the relay address.`;
+    $("bootMsg").innerHTML = `<span class="err">This copy of the app isn't connected to its data relay.</span> Open fastest-aloft.vercel.app instead.`;
     return;
   }
-  const order = REGIONS.map((_, i) => i);
   let done = 0, failed = 0;
   const update = () => {
-    $("bootBar").style.width = (done / REGIONS.length * 100).toFixed(0) + "%";
-    $("bootMeta").textContent = `${done} of ${REGIONS.length} regions · ${fmtInt(pool.size)} aircraft`;
+    $("bootBar").style.width = (done / BOOT_ITEMS * 100).toFixed(0) + "%";
+    $("bootMeta").textContent = `${done} of ${BOOT_ITEMS} aircraft families · ${fmtInt(pool.size)} fast jets`;
     const top = freshRanking()[0];
-    $("bootLeader").textContent = top ? `Fastest so far: ${top.flight || top.hex.toUpperCase()} at ${fmtSpeed(top.gs)} ${UNITS[unit].label}` : "";
+    $("bootLeader").textContent = top ? `Fastest so far: ${label(top)} at ${fmtSpeed(top.gs)} ${UNITS[unit].label}` : "";
   };
   update();
-  openSkySweep();
-  const milP = scanMil().catch(() => {});
-  const worker = async () => {
-    while (order.length) {
-      const i = order.shift();
-      try { await scanRegion(i); } catch (e) { failed++; }
-      done++; update();
-      await sleep(150);
-    }
-  };
-  await Promise.all([worker(), worker(), worker()]);
-  await milP;
-  if (failed === REGIONS.length || pool.size === 0) {
-    $("bootMsg").innerHTML = `<span class="err">The live flight feeds didn't answer.</span> The relay or the feeds may be busy. Try again in a minute.`;
+  for (let i = 0; i < BOOT_ITEMS; i++) {
+    try { await sweepOne(3); } catch (e) { failed++; }
+    done++; update();
+  }
+  if (pool.size === 0) {
+    $("bootMsg").innerHTML = failed === BOOT_ITEMS
+      ? `<span class="err">The live flight feeds didn't answer.</span> They may be busy. Try again in a minute.`
+      : `<span class="err">No fast aircraft reported yet.</span> Try again in a minute.`;
     $("retryBtn").hidden = false;
     return;
   }
   checkNo = 1;
-  evaluate(false);
   booted = true;
+  evaluate(false);
   bootEl.classList.add("gone");
-  const r = champ && (pool.get(champ.hex) || champ.snap);
-  if (r) map.flyTo([r.lat, r.lon], 5, { duration: 2 });
   startLoop();
+  if (!sweeping) { sweeping = true; sweepLoop(); }
 }
 
 /* ================= UI wiring ================= */
@@ -1152,37 +1265,40 @@ sheet.addEventListener("touchend", e => {
 $("unitBtn").addEventListener("click", () => {
   unit = unit === "kt" ? "mph" : unit === "mph" ? "kmh" : "kt";
   try { localStorage.setItem("fa-unit", unit); } catch (e) {}
-  speedShown = null; renderAll();
+  speedShown = null; renderLegend(); renderAll();
 });
+function setFollow(on) { follow = on; $("followBtn").setAttribute("aria-pressed", String(on)); }
 $("followBtn").addEventListener("click", () => {
-  follow = !follow; $("followBtn").setAttribute("aria-pressed", String(follow));
-  if (follow && champ) { const r = pool.get(champ.hex) || champ.snap; map.flyTo([r.lat, r.lon], Math.max(map.getZoom(), 5), { duration: 1.2 }); }
+  setFollow(!follow);
+  if (follow && champ) focusOn(predict(pool.get(champ.hex) || champ.snap), Math.max(map.getZoom(), 5), true);
 });
-map.on("dragstart", () => { if (follow) { follow = false; $("followBtn").setAttribute("aria-pressed", "false"); } });
-$("covBtn").addEventListener("click", () => {
-  showCov = !showCov; $("covBtn").setAttribute("aria-pressed", String(showCov));
-  showCov ? covLayer.addTo(map) : map.removeLayer(covLayer);
+map.on("dragstart", () => { if (follow) setFollow(false); });
+map.on("zoomend", () => { if (champ) drawRivals(freshRanking()); });
+$("styleBtn").addEventListener("click", () => {
+  const keys = Object.keys(STYLES);
+  style = keys[(keys.indexOf(style) + 1) % keys.length];
+  try { localStorage.setItem("fa-style", style); } catch (e) {}
+  applyStyle(); flashNote(`Map: ${STYLES[style].label}`);
 });
-$("worldBtn").addEventListener("click", () => {
-  follow = false; $("followBtn").setAttribute("aria-pressed", "false");
-  map.flyTo([35, -30], 2, { duration: 1.4 });
+$("fieldBtn").addEventListener("click", () => {
+  showField = !showField; $("fieldBtn").setAttribute("aria-pressed", String(showField));
+  $("legend").hidden = !showField; drawField();
 });
+$("worldBtn").addEventListener("click", () => { setFollow(false); map.flyTo([35, -30], 2, { duration: 1.4 }); });
 $("board").addEventListener("click", e => {
   const b = e.target.closest(".row[data-hex]"); if (!b) return;
   const r = pool.get(b.dataset.hex); if (!r) return;
-  follow = false; $("followBtn").setAttribute("aria-pressed", "false");
+  setFollow(false);
   if (window.innerWidth < 900) openSheet(false);
-  map.flyTo([r.lat, r.lon], 6, { duration: 1.2 });
+  setTimeout(() => focusOn(predict(r), 6, true), window.innerWidth < 900 ? 350 : 0);
 });
 $("retryBtn").addEventListener("click", boot);
 window.addEventListener("resize", sizeTape);
 
-sizeTape(); animateTape(); ringLoop();
+applyStyle(); drawNight(); renderLegend();
+sizeTape(); animateTape(); ringLoop(); requestAnimationFrame(glide);
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(sizeTape);
 boot();
-
-// test hook for local previews
-window.__fa = { pool, evaluate, renderAll, get champ() { return champ; } };
 })();
 </script>
 </body>
