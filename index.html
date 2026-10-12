@@ -394,7 +394,8 @@ const REGIONS = [
 // The feeds don't allow direct requests from web pages, so the app reads them through
 // a small Cloudflare relay (relay/worker.js). Set DEFAULT_RELAY once it's deployed;
 // adding ?relay=https://… to the page address also works and is remembered.
-const DEFAULT_RELAY = "";
+// On Vercel the relay lives at /api on the same site (api/relay.js).
+const DEFAULT_RELAY = /\.vercel\.app$/.test(location.hostname) ? `${location.origin}/api` : "";
 let RELAY = DEFAULT_RELAY;
 try {
   const q = new URLSearchParams(location.search).get("relay");
@@ -1095,7 +1096,7 @@ async function boot() {
   $("bootMsg").textContent = "Sweeping the world's busiest airspace for the fastest aircraft.";
   $("bootMsg").classList.remove("err");
   if (!RELAY) {
-    $("bootMsg").innerHTML = `<span class="err">The data relay isn't connected yet.</span> Finish the Cloudflare relay setup, then reload this page.`;
+    $("bootMsg").innerHTML = `<span class="err">The data relay isn't connected on this address.</span> Open the Vercel version of the app, or add ?relay= with the relay address.`;
     return;
   }
   const order = REGIONS.map((_, i) => i);
